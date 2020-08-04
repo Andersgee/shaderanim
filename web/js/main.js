@@ -7,8 +7,8 @@ async function fetchassets() {
 
 function clipspacequad() {
   let model = {
-    index: new Uint32Array([0, 1, 2, 3]),
-    clipspace: new Float32Array([-1, -1, -1, 1, 1, -1, 1, 1]),
+    index: new Uint32Array([0, 1, 2, 2, 3, 0]),
+    clipspace: new Float32Array([-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0]),
   };
   return model;
 }
@@ -21,7 +21,6 @@ function main(assets) {
   let canvas = document.getElementById("canvas");
   let gl = webgl(canvas);
   let [layout, uniforms] = shaderlayout();
-  console.log("assets[0]: ", assets[0]);
   let basicshader = createprogram(gl, layout, assets[0], assets[1]);
   gl.useProgram(basicshader);
   let model = clipspacequad();

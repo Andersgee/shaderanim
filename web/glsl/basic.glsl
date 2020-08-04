@@ -1,6 +1,6 @@
 #ifdef VERT
 
-in vec2 clipspace;
+in vec3 clipspace;
 
 uniform float t;
 
@@ -8,7 +8,7 @@ out vec2 uv;
 
 void main() {
   uv = 0.5 + 0.5*clipspace.xy;
-  gl_Position = vec4(clipspace, 0.0, 1.0);
+  gl_Position = vec4(clipspace, 1.0);
 }
 
 #endif
@@ -25,7 +25,7 @@ out vec4 fragcolor;
 
 void main(void) {
   vec3 color = vec3(1.0, 0.0, 0.0);
-  fragcolor = vec4(color, 1.0);
+  fragcolor = vec4(color/t, 1.0);
 }
 
 #endif

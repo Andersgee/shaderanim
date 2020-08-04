@@ -9,7 +9,7 @@ function webgl(canvas) {
 function shaderlayout() {
   let layout = {};
   layout.attributes = {
-    clipspace: 2,
+    clipspace: 3,
   };
 
   layout.uniforms = {
@@ -26,7 +26,7 @@ function shaderlayout() {
 function draw(gl, program, uniforms) {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   setuniforms(gl, program, uniforms);
-  gl.drawElements(gl.TRIANGLES, 4, gl.UNSIGNED_INT, 0);
+  gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, 0);
 }
 
 function setuniforms(gl, program, uniforms) {
@@ -74,10 +74,8 @@ function createprogram(gl, layout, common, text) {
   gl.linkProgram(program);
 
   program.attributes = getattributes(gl, program, layout.attributes);
-  console.log("program.attributes: ", program.attributes);
-  console.log("layout.attributes: ", layout.attributes);
   program.uniforms = getuniforms(gl, program, layout.uniforms);
-  console.log("program.uniforms: ", program.uniforms);
+  console.log("program: ", program);
   return program;
 }
 
