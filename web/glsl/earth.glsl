@@ -76,7 +76,7 @@ void main(void) {
 
   float metallic = 0.1;
 
-  float daylight = 0.0;
+  float daylight = 1.0;
   vec3 col_earthnight = vec3(0.0);
   if (st>0.0) {
     p = ro+rd*st;
