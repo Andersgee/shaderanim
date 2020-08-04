@@ -31,24 +31,6 @@ uniform float time;
 
 out vec4 fragcolor;
 
-float sphIntersect(vec3 ro, vec3 rd, vec4 sph) {
-    vec3 oc = ro - sph.xyz;
-    float b = dot( oc, rd );
-    float c = dot( oc, oc ) - sph.w*sph.w;
-    float h = b*b - c;
-    if( h<0.0 ) return -1.0;
-    h = sqrt( h );
-    return -b - h;
-}
-
-vec3 sphNormal(vec3 p, vec4 sph) {
-  return normalize(p - sph.xyz);
-}
-
-float plaIntersect(vec3 ro, vec3 rd, vec4 p) {
-    return -(dot(ro,p.xyz)+p.w)/dot(rd,p.xyz);
-}
-
 vec2 spherenormal2uv(vec3 N, float rotspeed) {
   float u = atan(N.z, N.x)/PI + 0.5;
   float v = 0.5*N.y + 0.5;
@@ -60,7 +42,7 @@ vec2 spherenormal2uv(vec3 N, float rotspeed) {
 void main(void) {
   float aspect = 16.0/9.0;
 
-  vec3 rd = normalize(vec3(ssc.x*aspect, ssc.y, 3.0));
+  vec3 rd = normalize(vec3(ssc.x*aspect, ssc.y, 3.5));
   vec3 ro = vec3(0.0,0.5,-3.4);
   vec3 V = -rd;
   vec3 N = vec3(0.0, 1.0, 0.0);
@@ -78,6 +60,7 @@ void main(void) {
 
   float daylight = 1.0;
   vec3 col_earthnight = vec3(0.0);
+  float roughness = 0.75;
   if (st>0.0) {
     p = ro+rd*st;
     N = sphNormal(p,sph);
@@ -98,12 +81,14 @@ void main(void) {
     float iswater = texture(earthwater, sphereuv).x;
     float bump = texture(earthbump, sphereuv).x;
 
+    roughness = 1.0-iswater*0.9;
+    //metallic = iswater*0.9;
     lightcolor = mix(col_earthclouds, col_earthday, clamp01(cloudtransparency));
   }
 
   float lightstrength = 1000.0;
   vec3 albedo = vec3(0.5, 0.4, 0.4);
-  float roughness = 0.75;
+  
   float ao = 0.1;
   vec3 F0 = mix(vec3(0.02), albedo, metallic);
 

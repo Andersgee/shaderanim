@@ -71,3 +71,23 @@ vec3 CookTorranceBRDF(vec3 N, vec3 V, vec3 p, vec3 lightpos, vec3 lightcolor, fl
   vec3 spec = (diffuse * albedo / PI + specular) * radiance * NL;
   return spec;
 }
+
+
+
+float sphIntersect(vec3 ro, vec3 rd, vec4 sph) {
+    vec3 oc = ro - sph.xyz;
+    float b = dot( oc, rd );
+    float c = dot( oc, oc ) - sph.w*sph.w;
+    float h = b*b - c;
+    if( h<0.0 ) return -1.0;
+    h = sqrt( h );
+    return -b - h;
+}
+
+vec3 sphNormal(vec3 p, vec4 sph) {
+  return normalize(p - sph.xyz);
+}
+
+float plaIntersect(vec3 ro, vec3 rd, vec4 p) {
+    return -(dot(ro,p.xyz)+p.w)/dot(rd,p.xyz);
+}
