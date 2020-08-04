@@ -10,6 +10,10 @@ float clamp01(float x) {
     return clamp(x, 0.0, 1.0);
 }
 
+float max0(float x ) {
+    return max(0.0, x);
+}
+
 const float PI = 3.14159265359;
 
 float gammaexpand(float u) {
@@ -55,10 +59,10 @@ float GeometrySmith(float NV, float NL, float roughness) {
 vec3 CookTorranceBRDF(vec3 N, vec3 V, vec3 p, vec3 lightpos, vec3 lightcolor, float lightstrength, vec3 F0, vec3 albedo, float roughness, float metallic) {
   vec3 L = normalize(lightpos - p);
   vec3 H = normalize(V + L);
-  float NL = max(dot(N, L), 0.0);
-  float NV = max(dot(N, V), 0.0);
-  float NH = max(dot(N, H), 0.0);
-  float HV = clamp(dot(H, V), 0.0, 1.0);
+  float NL = max0(dot(N, L));
+  float NV = max0(dot(N, V));
+  float NH = max0(dot(N, H));
+  float HV = clamp01(dot(H, V));
   float d = length(lightpos - p);
   vec3 radiance = lightstrength*lightcolor / (d*d);
 

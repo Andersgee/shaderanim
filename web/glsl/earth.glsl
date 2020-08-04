@@ -61,33 +61,33 @@ void main(void) {
   float daylight = 1.0;
   vec3 col_earthnight = vec3(0.0);
   float roughness = 0.75;
+  float lightstrength = 1000.0;
+  vec3 albedo = vec3(0.5, 0.4, 0.4);
+
   if (st>0.0) {
     p = ro+rd*st;
     N = sphNormal(p,sph);
     t = st;
 
     vec3 L = normalize(lightpos - p);
-    daylight = (max(0.0, dot(N,L))+0.15)/1.15; //with some bleed over the edge
-
-    float rotspeed = 0.1;
-    float time = 0.0;
+    daylight = max0(dot(N,L));
     vec2 sphereuv = spherenormal2uv(N, 0.04);
     vec2 sphereuvfast = spherenormal2uv(N, 0.05);
 
     vec3 col_earthday = srgb2rgb(texture(earthday, sphereuv).xyz);
     col_earthnight = srgb2rgb(texture(earthnight, sphereuv).xyz);
     vec3 col_earthclouds = srgb2rgb(texture(earthclouds, sphereuvfast).xyz);
-    float cloudtransparency = 1.75*texture(earthcloudtrans, sphereuvfast).x;
+    float cloudtransparency = texture(earthcloudtrans, sphereuvfast).x;
+    float cloudopacity = 1.0 - cloudtransparency;
     float iswater = texture(earthwater, sphereuv).x;
     float bump = texture(earthbump, sphereuv).x;
 
-    roughness = 1.0-iswater*0.9;
-    //metallic = iswater*0.9;
-    lightcolor = mix(col_earthclouds, col_earthday, clamp01(cloudtransparency));
+    roughness = 1.0-iswater*0.5;
+    //metallic = 1.0-iswater;
+    col_earthnight = mix(col_earthnight, col_earthclouds, cloudtransparency*(daylight*0.25));
+    albedo = mix(col_earthclouds, col_earthday, clamp01(cloudtransparency*1.75));
   }
-
-  float lightstrength = 1000.0;
-  vec3 albedo = vec3(0.5, 0.4, 0.4);
+  
   
   float ao = 0.1;
   vec3 F0 = mix(vec3(0.02), albedo, metallic);
