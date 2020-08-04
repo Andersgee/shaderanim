@@ -6,27 +6,6 @@ function webgl(canvas) {
   return gl;
 }
 
-function shaderlayout() {
-  let layout = {};
-  layout.attributes = {
-    clipspace: 2,
-  };
-
-  layout.uniforms = {
-    t: "uniform1f",
-    earthday: "uniform1i",
-    earthnight: "uniform1i",
-  };
-
-  let uniforms = {
-    t: 1.0,
-    earthday: 0,
-    earthnight: 1,
-  };
-
-  return [layout, uniforms];
-}
-
 function draw(gl, program, uniforms) {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   setuniforms(gl, program, uniforms);
@@ -38,6 +17,9 @@ function setuniforms(gl, program, uniforms) {
     gl[program.uniforms[name].func](program.uniforms[name].loc, uniforms[name]);
   }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// Model
 
 function clipspacequad() {
   let model = {
@@ -69,86 +51,8 @@ function bindclipspacequad(gl, program) {
   }
 }
 
-function createtextures(gl, filenames) {
-  //use single black pixel in textures (temporarily, before images are loaded)
-  gl.activeTexture(gl.TEXTURE0 + 0);
-  let tex0 = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, tex0);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-
-  gl.texImage2D(
-    gl.TEXTURE_2D,
-    0,
-    gl.RGBA,
-    1,
-    1,
-    0,
-    gl.RGBA,
-    gl.UNSIGNED_BYTE,
-    new Uint8Array([0, 0, 0, 255])
-  );
-
-  gl.activeTexture(gl.TEXTURE0 + 1);
-  let tex1 = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, tex1);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-
-  gl.texImage2D(
-    gl.TEXTURE_2D,
-    0,
-    gl.RGBA,
-    1,
-    1,
-    0,
-    gl.RGBA,
-    gl.UNSIGNED_BYTE,
-    new Uint8Array([0, 0, 0, 255])
-  );
-
-  let image0 = new Image();
-  image0.src = filenames[0];
-  image0.onload = () => {
-    gl.activeTexture(gl.TEXTURE0 + 0);
-    gl.bindTexture(gl.TEXTURE_2D, tex0);
-    let mipLevel = 0;
-    let internalFormat = gl.RGBA;
-    let srcFormat = gl.RGBA;
-    let srcType = gl.UNSIGNED_BYTE;
-    gl.texImage2D(
-      gl.TEXTURE_2D,
-      mipLevel,
-      internalFormat,
-      srcFormat,
-      srcType,
-      image0
-    );
-  };
-
-  let image1 = new Image();
-  image1.src = filenames[1];
-  image1.onload = () => {
-    gl.activeTexture(gl.TEXTURE0 + 1);
-    gl.bindTexture(gl.TEXTURE_2D, tex1);
-    let mipLevel = 0;
-    let internalFormat = gl.RGBA;
-    let srcFormat = gl.RGBA;
-    let srcType = gl.UNSIGNED_BYTE;
-    gl.texImage2D(
-      gl.TEXTURE_2D,
-      mipLevel,
-      internalFormat,
-      srcFormat,
-      srcType,
-      image1
-    );
-  };
-}
+///////////////////////////////////////////////////////////////////////////////
+// Program
 
 function createprogram(gl, layout, common, text) {
   let verttext = common.concat("\n#define VERT;\n", text);
@@ -170,11 +74,6 @@ function createprogram(gl, layout, common, text) {
   program.attributes = getattributes(gl, program, layout.attributes);
   program.uniforms = getuniforms(gl, program, layout.uniforms);
   console.log("program: ", program);
-
-  createtextures(gl, [
-    "../textures/earthday.jpg",
-    "../textures/earthnight.jpg",
-  ]);
 
   return program;
 }
@@ -199,4 +98,54 @@ function getuniforms(gl, program, layout) {
     }
   }
   return uniforms;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Textures
+// Instead of waiting for fetch of textures before running the shader, pass filenames
+// and use single black pixel in textures temporarily before images are loaded
+
+function teximage2d_rgba(gl, image) {
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+}
+
+function teximage2d_rgbafromdata(gl, width, height, data) {
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    0,
+    gl.RGBA,
+    width,
+    height,
+    0,
+    gl.RGBA,
+    gl.UNSIGNED_BYTE,
+    data
+  );
+}
+
+function bindtexture(gl, filenames, i) {
+  let image = new Image();
+  image.src = filenames[i];
+
+  gl.activeTexture(gl.TEXTURE0 + i);
+  let tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+  teximage2d_rgbafromdata(gl, 1, 1, new Uint8Array([0, 0, 0, 255]));
+
+  image.onload = () => {
+    gl.activeTexture(gl.TEXTURE0 + i);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    teximage2d_rgba(gl, image);
+  };
+}
+
+function bindtextures(gl, filenames) {
+  for (let i = 0; i < filenames.length; i++) {
+    bindtexture(gl, filenames, i);
+  }
 }

@@ -1,4 +1,4 @@
-async function fetchassets() {
+async function fetchglsl() {
   return await Promise.all([
     fetch("../glsl/common.glsl").then((res) => res.text()),
     fetch("../glsl/basic.glsl").then((res) => res.text()),
@@ -6,16 +6,40 @@ async function fetchassets() {
 }
 
 function setup() {
-  fetchassets().then((assets) => main(assets));
+  fetchglsl().then((glsl) => main(glsl));
 }
 
-function main(assets) {
+function shaderlayout() {
+  let layout = {};
+  layout.attributes = {
+    clipspace: 2,
+  };
+
+  layout.uniforms = {
+    t: "uniform1f",
+    earthday: "uniform1i",
+    earthnight: "uniform1i",
+  };
+
+  let uniforms = {
+    t: 1.0,
+    earthday: 0,
+    earthnight: 1,
+  };
+
+  texturefilenames = ["../textures/earthday.jpg", "../textures/earthnight.jpg"];
+
+  return [layout, uniforms, texturefilenames];
+}
+
+function main(glsl) {
   let canvas = document.getElementById("canvas");
   let gl = webgl(canvas);
-  let [layout, uniforms] = shaderlayout();
-  let basicshader = createprogram(gl, layout, assets[0], assets[1]);
+  let [layout, uniforms, texturefilenames] = shaderlayout();
+  let basicshader = createprogram(gl, layout, glsl[0], glsl[1]);
   gl.useProgram(basicshader);
   bindclipspacequad(gl, basicshader);
+  bindtextures(gl, texturefilenames);
 
   let animstart = performance.now();
   let animframe = requestAnimationFrame(animate);

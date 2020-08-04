@@ -30,7 +30,7 @@ void main(void) {
 
   vec3 color1 = texture(earthday, uv).xyz;
   vec3 color2 = texture(earthnight, uv).xyz;
-  vec3 color = mix(color1, color2, 0.5);
+  vec3 color = mix(color1, color2, 0.9);
   fragcolor = vec4(color, 1.0);
 }
 
