@@ -9,7 +9,7 @@ function webgl(canvas) {
 function shaderlayout() {
   let layout = {};
   layout.attributes = {
-    clipspace: 3,
+    clipspace: 2,
   };
 
   layout.uniforms = {
@@ -35,7 +35,16 @@ function setuniforms(gl, program, uniforms) {
   }
 }
 
-function bindmodel(gl, program, model) {
+function clipspacequad() {
+  let model = {
+    index: new Uint32Array([0, 1, 2, 2, 3, 0]),
+    clipspace: new Float32Array([-1, -1, 1, -1, 1, 1, -1, 1]),
+  };
+  return model;
+}
+
+function bindclipspacequad(gl, program) {
+  let model = clipspacequad();
   gl.bindVertexArray(gl.createVertexArray());
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, model["index"], gl.STATIC_DRAW);

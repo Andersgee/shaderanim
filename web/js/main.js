@@ -5,14 +5,6 @@ async function fetchassets() {
   ]);
 }
 
-function clipspacequad() {
-  let model = {
-    index: new Uint32Array([0, 1, 2, 2, 3, 0]),
-    clipspace: new Float32Array([-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0]),
-  };
-  return model;
-}
-
 function setup() {
   fetchassets().then((assets) => main(assets));
 }
@@ -23,8 +15,7 @@ function main(assets) {
   let [layout, uniforms] = shaderlayout();
   let basicshader = createprogram(gl, layout, assets[0], assets[1]);
   gl.useProgram(basicshader);
-  let model = clipspacequad();
-  bindmodel(gl, basicshader, model);
+  bindclipspacequad(gl, basicshader);
 
   let animstart = performance.now();
   let animframe = requestAnimationFrame(animate);

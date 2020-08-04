@@ -1,6 +1,6 @@
 #ifdef VERT
 
-in vec3 clipspace;
+in vec2 clipspace;
 
 uniform float t;
 
@@ -8,7 +8,7 @@ out vec2 uv;
 
 void main() {
   uv = 0.5 + 0.5*clipspace.xy;
-  gl_Position = vec4(clipspace, 1.0);
+  gl_Position = vec4(clipspace, 0.0, 1.0);
 }
 
 #endif
