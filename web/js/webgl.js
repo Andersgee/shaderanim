@@ -70,7 +70,7 @@ function bindclipspacequad(gl, program) {
 }
 
 function createtextures(gl, filenames) {
-  //temporarily use single green pixel in texture before image is loaded
+  //use single black pixel in textures (temporarily, before images are loaded)
   gl.activeTexture(gl.TEXTURE0 + 0);
   let tex0 = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, tex0);
@@ -88,7 +88,7 @@ function createtextures(gl, filenames) {
     0,
     gl.RGBA,
     gl.UNSIGNED_BYTE,
-    new Uint8Array([255, 0, 0, 255])
+    new Uint8Array([0, 0, 0, 255])
   );
 
   gl.activeTexture(gl.TEXTURE0 + 1);
@@ -108,7 +108,7 @@ function createtextures(gl, filenames) {
     0,
     gl.RGBA,
     gl.UNSIGNED_BYTE,
-    new Uint8Array([0, 255, 0, 255])
+    new Uint8Array([0, 0, 0, 255])
   );
 
   let image0 = new Image();
