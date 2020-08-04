@@ -14,9 +14,11 @@ function shaderlayout() {
 
   layout.uniforms = {
     t: "uniform1f",
+    earthday: "uniform1i",
   };
 
   let uniforms = {
+    earthday: 0,
     t: 1.0,
   };
 
@@ -65,6 +67,44 @@ function bindclipspacequad(gl, program) {
   }
 }
 
+function createtextures(gl) {
+  gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+  let image = new Image();
+  image.src = "../textures/earthday.jpg";
+  //temporarily use single green pixel in texture before image is loaded
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    0,
+    gl.RGBA,
+    1,
+    1,
+    0,
+    gl.RGBA,
+    gl.UNSIGNED_BYTE,
+    new Uint8Array([0, 255, 0, 255])
+  );
+  image.onload = () => {
+    // Upload the image into the texture.
+    let mipLevel = 0;
+    let internalFormat = gl.RGBA;
+    let srcFormat = gl.RGBA;
+    let srcType = gl.UNSIGNED_BYTE;
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      mipLevel,
+      internalFormat,
+      srcFormat,
+      srcType,
+      image
+    );
+  };
+}
+
 function createprogram(gl, layout, common, text) {
   let verttext = common.concat("\n#define VERT;\n", text);
   let fragtext = common.concat("\n#define FRAG;\n", text);
@@ -85,6 +125,9 @@ function createprogram(gl, layout, common, text) {
   program.attributes = getattributes(gl, program, layout.attributes);
   program.uniforms = getuniforms(gl, program, layout.uniforms);
   console.log("program: ", program);
+
+  createtextures(gl);
+
   return program;
 }
 

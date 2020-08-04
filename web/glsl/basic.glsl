@@ -2,8 +2,6 @@
 
 in vec2 clipspace;
 
-uniform float t;
-
 out vec2 uv;
 
 void main() {
@@ -20,12 +18,16 @@ void main() {
 in vec2 uv;
 
 uniform float t;
+uniform sampler2D earthday;
 
 out vec4 fragcolor;
 
 void main(void) {
-  vec3 color = vec3(1.0, 0.0, 0.0);
-  fragcolor = vec4(color/t, 1.0);
+  //vec3 color = vec3(1.0, 0.0, 0.0);
+  //fragcolor = vec4(color/t, 1.0);
+
+  vec3 color = texture(earthday, uv).xyz;
+  fragcolor = vec4(color, 1.0);
 }
 
 #endif
