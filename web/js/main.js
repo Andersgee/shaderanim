@@ -1,7 +1,7 @@
 async function fetchglsl() {
   return await Promise.all([
     fetch("../glsl/common.glsl").then((res) => res.text()),
-    fetch("../glsl/basic.glsl").then((res) => res.text()),
+    fetch("../glsl/earth.glsl").then((res) => res.text()),
   ]);
 }
 
@@ -16,7 +16,7 @@ function shaderlayout() {
   };
 
   layout.uniforms = {
-    t: "uniform1f",
+    time: "uniform1f",
     earthday: "uniform1i",
     earthnight: "uniform1i",
   };
@@ -44,7 +44,7 @@ function main(glsl) {
   let animstart = performance.now();
   let animframe = requestAnimationFrame(animate);
   function animate(timestamp) {
-    uniforms.t = (timestamp - animstart) / 1000;
+    uniforms.time = (timestamp - animstart) / 1000;
     draw(gl, basicshader, uniforms);
     animframe = requestAnimationFrame(animate);
   }
