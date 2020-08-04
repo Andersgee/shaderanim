@@ -15,11 +15,13 @@ function shaderlayout() {
   layout.uniforms = {
     t: "uniform1f",
     earthday: "uniform1i",
+    earthnight: "uniform1i",
   };
 
   let uniforms = {
-    earthday: 0,
     t: 1.0,
+    earthday: 0,
+    earthnight: 1,
   };
 
   return [layout, uniforms];
@@ -67,16 +69,36 @@ function bindclipspacequad(gl, program) {
   }
 }
 
-function createtextures(gl) {
-  gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+function createtextures(gl, filenames) {
+  //temporarily use single green pixel in texture before image is loaded
+  gl.activeTexture(gl.TEXTURE0 + 0);
+  let tex0 = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex0);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
-  let image = new Image();
-  image.src = "../textures/earthday.jpg";
-  //temporarily use single green pixel in texture before image is loaded
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    0,
+    gl.RGBA,
+    1,
+    1,
+    0,
+    gl.RGBA,
+    gl.UNSIGNED_BYTE,
+    new Uint8Array([255, 0, 0, 255])
+  );
+
+  gl.activeTexture(gl.TEXTURE0 + 1);
+  let tex1 = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex1);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
   gl.texImage2D(
     gl.TEXTURE_2D,
     0,
@@ -88,8 +110,12 @@ function createtextures(gl) {
     gl.UNSIGNED_BYTE,
     new Uint8Array([0, 255, 0, 255])
   );
-  image.onload = () => {
-    // Upload the image into the texture.
+
+  let image0 = new Image();
+  image0.src = filenames[0];
+  image0.onload = () => {
+    gl.activeTexture(gl.TEXTURE0 + 0);
+    gl.bindTexture(gl.TEXTURE_2D, tex0);
     let mipLevel = 0;
     let internalFormat = gl.RGBA;
     let srcFormat = gl.RGBA;
@@ -100,7 +126,26 @@ function createtextures(gl) {
       internalFormat,
       srcFormat,
       srcType,
-      image
+      image0
+    );
+  };
+
+  let image1 = new Image();
+  image1.src = filenames[1];
+  image1.onload = () => {
+    gl.activeTexture(gl.TEXTURE0 + 1);
+    gl.bindTexture(gl.TEXTURE_2D, tex1);
+    let mipLevel = 0;
+    let internalFormat = gl.RGBA;
+    let srcFormat = gl.RGBA;
+    let srcType = gl.UNSIGNED_BYTE;
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      mipLevel,
+      internalFormat,
+      srcFormat,
+      srcType,
+      image1
     );
   };
 }
@@ -126,7 +171,10 @@ function createprogram(gl, layout, common, text) {
   program.uniforms = getuniforms(gl, program, layout.uniforms);
   console.log("program: ", program);
 
-  createtextures(gl);
+  createtextures(gl, [
+    "../textures/earthday.jpg",
+    "../textures/earthnight.jpg",
+  ]);
 
   return program;
 }
