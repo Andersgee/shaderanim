@@ -19,15 +19,30 @@ function shaderlayout() {
     time: "uniform1f",
     earthday: "uniform1i",
     earthnight: "uniform1i",
+    earthclouds: "uniform1i",
+    earthcloudtrans: "uniform1i",
+    earthwater: "uniform1i",
+    earthbump: "uniform1i",
   };
 
   let uniforms = {
     t: 1.0,
     earthday: 0,
     earthnight: 1,
+    earthclouds: 2,
+    earthcloudtrans: 3,
+    earthwater: 4,
+    earthbump: 5,
   };
 
-  texturefilenames = ["../textures/earthday.jpg", "../textures/earthnight.jpg"];
+  texturefilenames = [
+    "../textures/earthday.jpg",
+    "../textures/earthnight.jpg",
+    "../textures/earthclouds.jpg",
+    "../textures/earthcloudtrans.jpg",
+    "../textures/earthwater.jpg",
+    "../textures/earthbump.jpg",
+  ];
 
   return [layout, uniforms, texturefilenames];
 }
@@ -38,8 +53,8 @@ function main(glsl) {
   let [layout, uniforms, texturefilenames] = shaderlayout();
   let basicshader = createprogram(gl, layout, glsl[0], glsl[1]);
   gl.useProgram(basicshader);
-  bindclipspacequad(gl, basicshader);
   bindtextures(gl, texturefilenames);
+  bindclipspacequad(gl, basicshader);
 
   let animstart = performance.now();
   let animframe = requestAnimationFrame(animate);

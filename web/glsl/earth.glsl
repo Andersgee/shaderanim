@@ -17,15 +17,17 @@ void main() {
 
 #ifdef FRAG
 
-
-
 in vec2 uv;
 in vec2 ssc;
 
 uniform sampler2D earthday;
 uniform sampler2D earthnight;
-uniform float time;
+uniform sampler2D earthclouds;
+uniform sampler2D earthcloudtrans;
+uniform sampler2D earthwater;
+uniform sampler2D earthbump;
 
+uniform float time;
 
 out vec4 fragcolor;
 
@@ -47,11 +49,11 @@ float plaIntersect(vec3 ro, vec3 rd, vec4 p) {
     return -(dot(ro,p.xyz)+p.w)/dot(rd,p.xyz);
 }
 
-vec2 spherenormal2uv(vec3 N) {
+vec2 spherenormal2uv(vec3 N, float rotspeed) {
   float u = atan(N.z, N.x)/PI + 0.5;
   float v = 0.5*N.y + 0.5;
   //return vec2(u,v);
-  u = fract(u - time*0.05);
+  u = fract(u - time*rotspeed);
   return vec2(u,1.0-v);
 }
 
@@ -81,11 +83,18 @@ void main(void) {
 
     float rotspeed = 0.1;
     float time = 0.0;
-    vec2 sphereuv = spherenormal2uv(N);
+    vec2 sphereuv = spherenormal2uv(N, 0.04);
+    vec2 sphereuvfast = spherenormal2uv(N, 0.05);
+
     vec3 col_earthday = srgb2rgb(texture(earthday, sphereuv).xyz);
     vec3 col_earthnight = srgb2rgb(texture(earthnight, sphereuv).xyz);
+    vec3 col_earthclouds = srgb2rgb(texture(earthclouds, sphereuvfast).xyz);
+    float cloudtransparency = 1.75*texture(earthcloudtrans, sphereuvfast).x;
+    float iswater = texture(earthwater, sphereuv).x;
+    float bump = texture(earthbump, sphereuv).x;
 
-    lightcolor = mix(lightcolor, col_earthday, 0.995);
+    vec3 mixedcol = mix(col_earthnight, col_earthday, 0.999);
+    lightcolor = mix(col_earthclouds, mixedcol, clamp01(cloudtransparency));
   }
 
   float lightstrength = 1000.0;

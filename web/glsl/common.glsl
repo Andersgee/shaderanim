@@ -6,6 +6,10 @@ precision mediump float; //max float is 2^14=16384
 //precision mediump sampler3D; //setting (any) precision is required for some reason
 //precision highp sampler3D;
 
+float clamp01(float x) {
+    return clamp(x, 0.0, 1.0);
+}
+
 const float PI = 3.14159265359;
 
 float gammaexpand(float u) {

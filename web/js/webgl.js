@@ -141,6 +141,7 @@ function bindtexture(gl, filenames, i) {
     gl.activeTexture(gl.TEXTURE0 + i);
     gl.bindTexture(gl.TEXTURE_2D, tex);
     teximage2d_rgba(gl, image);
+    console.log("bound: ", filenames[i]);
   };
 }
 
