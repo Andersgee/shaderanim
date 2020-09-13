@@ -288,7 +288,7 @@ vec3 rotateArm(vec3 p, int i ) {
 }
 
 // initialize skeleton
-void initSkel(in float seqTime, in float time) {
+void initSkel(in float animframe, in float time) {
     for (int i = 0 ; i < skel.length() ; i++) {
         skel[i] = vec3(0);
     }
@@ -312,7 +312,7 @@ void initSkel(in float seqTime, in float time) {
     skel[13] = vec3(0.3, 0.7, 0);
     
     // float around
-    float f1 = s(8.0, 10.0, seqTime);
+    float f1 = s(8.0, 10.0, animframe);
     skel[1] = mix(skel[1], vec3(-0.1, 0, 0), f1);
     skel[2] = mix(skel[2], vec3(0.1, 0, 0), f1);
     skel[3] = mix(skel[3], vec3(0.1, 0, 0), f1);
@@ -330,13 +330,13 @@ void initSkel(in float seqTime, in float time) {
     skel[15] = mix(skel[15], vec3(-0.6, 0, 0), f1);
     
     // look at his arms
-    float f2 = s(10.0, 16.0, seqTime) - s(15.0, 20.0, seqTime);
+    float f2 = s(10.0, 16.0, animframe) - s(15.0, 20.0, animframe);
     skel[2] = mix(skel[2], vec3(-0.3, 0, 0), f2);
     skel[3] = mix(skel[3], vec3(-0.4, -0.5, 0), f2);
     skel[4] = mix(skel[4], vec3(0.8, -0.9, 0), f2);
     skel[5] = mix(skel[5], vec3(0.0, -1.0, 0), f2);
     skel[6] = mix(skel[6], vec3(0.0, -0.3, 0), f2);
-    float f3 = s(18.0, 22.0, seqTime) - s(26.0, 28.0, seqTime);
+    float f3 = s(18.0, 22.0, animframe) - s(26.0, 28.0, animframe);
     skel[2] = mix(skel[2], vec3(-0.3, 0, 0), f3);
     skel[3] = mix(skel[3], vec3(-0.4, 0.5, 0), f3);
     skel[7] = mix(skel[7], vec3(0.8, -0.9, 0), f3);
@@ -344,7 +344,7 @@ void initSkel(in float seqTime, in float time) {
     skel[9] = mix(skel[9], vec3(0.0, -0.3, 0), f3);
     
     // go into flying
-    float f4 = s(31.5, 34.0, seqTime);
+    float f4 = s(31.5, 34.0, animframe);
     skel[0] = mix(skel[0], vec3(-1.2, 0, 0), f4);
     skel[1] = mix(skel[1], vec3(-0.4, 0, 0), f4);
     skel[2] = mix(skel[2], vec3(0.3, 0, 0), f4);
@@ -357,10 +357,11 @@ void initSkel(in float seqTime, in float time) {
     skel[13] = mix(skel[13], vec3(-0.2, -0.3, 0.3), f4);
     skel[14] = mix(skel[14], vec3(-0.2, 0, 0), f4);
     skel[15] = mix(skel[15], vec3(-0.6, 0, 0), f4);
+    
 }
 
 // camera direction and position
-void getCamera(in vec2 uv, in float seqTime, out vec3 dir, out vec3 from){
+void getCamera(in vec2 uv, out vec3 dir, out vec3 from){
     // look at and up vector
     vec3 up = vec3(0.0, 1.0, 0.0);
     vec3 lookAt = vec3(0.0);
@@ -369,12 +370,12 @@ void getCamera(in vec2 uv, in float seqTime, out vec3 dir, out vec3 from){
     // rotate around our dude
     up = normalize(vec3(1.0, 10.0, 2.0));
     lookAt = vec3(0.0);
-    float rota = seqTime*0.1;
+    float rota = 0.0*0.1;
     from = vec3(cos(rota), 0.0, sin(rota))*5.0;
     
     // send our dude flying
-    from.z -= s(31.7, 37.0, seqTime)*200.0;
-    from.z -= s(30.5, 34.0, seqTime)*5.0;
+    from.z -= s(31.7, 37.0, 0.0)*200.0;
+    from.z -= s(30.5, 34.0, 0.0)*5.0;
     
     vec3 forward = normalize(lookAt - from);
     vec3 right = normalize(cross(forward, up));
@@ -551,7 +552,7 @@ vec3 getNormal(vec3 p) {
 void main(void) {
     // fetch the playback time
     float time = 0.0;//texelFetch(iChannel0, ivec2(0), 0).a;
-    float seqTime = 0.0;
+    float animframe = 10.0;
     
     vec2 uv = gl_FragCoord.xy-iResolution.xy*0.5; // Normalized pixel coordinates (from 0 to 1)
     uv /= iResolution.y;
@@ -559,8 +560,8 @@ void main(void) {
     // get the direction and position
     vec3 dir = vec3(0);
     vec3 from = vec3(0);
-    getCamera(uv, seqTime, dir, from);
-    initSkel(seqTime, time); // initialize skeleton
+    getCamera(uv, dir, from);
+    initSkel(animframe, time); // initialize skeleton
 	
     float fov = 1.0;
     float sinPix = sin(fov/iResolution.y)*2.0; // extent of a pixel, depends on the resolution
