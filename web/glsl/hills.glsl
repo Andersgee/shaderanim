@@ -224,8 +224,22 @@ vec3 TerrainColour(vec3 pos, vec3 dir,  vec3 normal, float dis, float type) {
 	return mat;
 }
 
+vec3 PostEffects(vec3 rgb, vec2 xy) {
+	// Gamma first...
+	rgb = pow(rgb, vec3(0.45));
+	
+	// Then...
+	#define CONTRAST 1.1
+	#define SATURATION 1.3
+	#define BRIGHTNESS 1.3
+	rgb = mix(vec3(.5), mix(vec3(dot(vec3(.2125, .7154, .0721), rgb*BRIGHTNESS)), rgb*BRIGHTNESS, SATURATION), CONTRAST);
+	// Vignette...
+	rgb *= .4+0.5*pow(40.0*xy.x*xy.y*(1.0-xy.x)*(1.0-xy.y), 0.2 );	
+	return rgb;
+}
+
 void main(void) {
-    vec2 iMouse = vec2(0.5, 0.5);
+    vec2 iMouse = vec2(0.0, 0.0);
 
 	float m = (iMouse.x/iResolution.x)*300.0;
 	float gTime = (iTime*5.0+m+2352.0)*.006;
@@ -256,7 +270,6 @@ void main(void) {
     if( !Scene(cameraPos, dir, distance, type) ) {
 		col = GetSky(dir); // Missed scene, now just get the sky
 	} else {
-		
 		vec3 pos = cameraPos + distance * dir; // Get world coordinate of landscape
 		// Get normal from sampling the high definition height map
 		// Use the distance to sample larger gaps to help stop aliasing
@@ -271,7 +284,29 @@ void main(void) {
 		col = TerrainColour(pos, dir, nor, distance, type);
 	}
 
-	fragColor=vec4(1.0, 0.0, 0.0, 1.0);
+    // bri is the brightness of sun at the centre of the camera direction.
+	// Yeah, the lens flares is not exactly subtle, but it was good fun making it.
+	float bri = dot(cw, sunLight)*.75;
+    if (bri > 0.0) {
+		vec2 sunPos = vec2( dot( sunLight, cu ), dot( sunLight, cv ) );
+		vec2 uvT = uv-sunPos;
+		uvT = uvT*(length(uvT));
+		bri = pow(bri, 6.0)*.8;
+
+		// glare = the red shifted blob...
+		float glare1 = max(dot(normalize(vec3(dir.x, dir.y+.3, dir.z)),sunLight),0.0)*1.4;
+		// glare2 is the yellow ring...
+		float glare2 = max(1.0-length(uvT+sunPos*.5)*4.0, 0.0);
+		uvT = mix (uvT, uv, -2.3);
+		// glare3 is a purple splodge...
+		float glare3 = max(1.0-length(uvT+sunPos*5.0)*1.2, 0.0);
+
+		col += bri * vec3(1.0, .0, .0)  * pow(glare1, 12.5)*.05;
+		col += bri * vec3(1.0, 1.0, 0.2) * pow(glare2, 2.0)*2.5;
+		col += bri * sunColour * pow(glare3, 2.0)*3.0;
+	}
+    col = PostEffects(col, xy);	
+	fragColor=vec4(col, 1.0);
 }
 
 
