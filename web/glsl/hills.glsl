@@ -25,7 +25,7 @@ out vec4 fragColor;
 
 #define MOD2 vec2(3.07965, 7.4235)
 vec3 sunLight  = normalize( vec3(  0.35, 0.2,  0.3 ) );
-vec3 cameraPos;
+vec3 cameraposition;
 vec3 sunColour = vec3(1.0, .75, .6);
 const mat2 rotate2D = mat2(1.932, 1.623, -1.623, 1.952);
 float gTime = 0.0;
@@ -173,7 +173,7 @@ vec3 DE(vec3 p) {
 
 vec3 GrassBlades(in vec3 rO, in vec3 rD, in vec3 mat, in float dist) {
 	float d = 0.0;
-	// Only calculate cCoC once is enough here...
+	// Only calcamerauplate cCoC once is enough here...
 	float rCoC = CircleOfConfusion(dist*.3);
 	float alpha = 0.0;
 	
@@ -187,7 +187,7 @@ vec3 GrassBlades(in vec3 rO, in vec3 rD, in vec3 mat, in float dist) {
 		ret.x += .5 * rCoC;
 
 		if (ret.x < rCoC) {
-			alpha = (1.0 - col.y) * Linstep(-rCoC, rCoC, -ret.x);//calculate the mix like cloud density
+			alpha = (1.0 - col.y) * Linstep(-rCoC, rCoC, -ret.x);//calcamerauplate the mix like cloud density
 			// Mix material with white tips for grass...
 			vec3 gra = mix(mat, vec3(.35, .35, min(pow(ret.z, 4.0)*35.0, .35)), pow(ret.y, 9.0)*.7) * ret.y;
 			col += vec4(gra * alpha, alpha);
@@ -199,25 +199,25 @@ vec3 GrassBlades(in vec3 rO, in vec3 rD, in vec3 mat, in float dist) {
 	return col.xyz;
 }
 
-void DoLighting(inout vec3 mat, in vec3 pos, in vec3 normal, in vec3 eyeDir, in float dis) {
+void DoLighting(inout vec3 mat, in vec3 pos, in vec3 normal, in vec3 eyeraydir, in float dis) {
 	float h = dot(sunLight,normal);
 	mat = mat * sunColour*(max(h, 0.0)+.2);
 }
 
-vec3 ApplyFog( in vec3  rgb, in float dis, in vec3 dir) {
+vec3 ApplyFog( in vec3  rgb, in float dis, in vec3 raydir) {
 	float fogAmount = clamp01(dis*dis* 0.0000012);
-	return mix( rgb, GetSky(dir), fogAmount );
+	return mix( rgb, GetSky(raydir), fogAmount );
 }
 
-vec3 TerrainColour(vec3 pos, vec3 dir,  vec3 normal, float dis, float type) {
+vec3 TerrainColour(vec3 pos, vec3 raydir,  vec3 normal, float dis, float type) {
 	vec3 mat;
 	if (type == 0.0) {
 		mat = mix(vec3(.0,.3,.0), vec3(.2,.3,.0), Noise(pos.xz*.025)); // Random colour
 		float t = FractalNoise(pos.xz * .1)+.5; // Random shadows
-		mat = GrassBlades(pos, dir, mat, dis) * t; // Do grass blade tracing
-		DoLighting(mat, pos, normal,dir, dis);
+		mat = GrassBlades(pos, raydir, mat, dis) * t; // Do grass blade tracing
+		DoLighting(mat, pos, normal,raydir, dis);
 	}
-	mat = ApplyFog(mat, dis, dir);
+	mat = ApplyFog(mat, dis, raydir);
 	return mat;
 }
 
@@ -242,32 +242,29 @@ void main(void) {
 	float gTime = (iTime*5.0+m+2352.0)*.006;
     vec2 xy = gl_FragCoord.xy / iResolution.xy;
 	vec2 uv = (-1.0 + 2.0 * xy) * vec2(iResolution.x/iResolution.y,1.0);
-	vec3 camTar;
+	vec3 cameratarget;
 
     
-	cameraPos = CameraPath(gTime + 0.0);
-    cameraPos.x -= 3.0;
-	camTar	 = CameraPath(gTime + .009);
-	cameraPos.y += Terrain(CameraPath(gTime + .009).xz).x;
-	camTar.y = cameraPos.y-2.4;
+	cameraposition = CameraPath(gTime + 0.0);
+    cameraposition.x -= 3.0;
+	cameratarget = CameraPath(gTime + .009);
+	cameraposition.y += Terrain(CameraPath(gTime + .009).xz).x;
+	cameratarget.y = cameraposition.y;
 	
-    
-	float roll = .4*sin(gTime+.5);
-	vec3 cw = normalize(camTar-cameraPos);
-	vec3 cp = vec3(sin(roll), cos(roll),0.0);
-	vec3 cu = cross(cw,cp);
-	vec3 cv = cross(cu,cw);
-	vec3 dir = normalize(uv.x*cu + uv.y*cv + 1.3*cw);
-	mat3 camMat = mat3(cu, cv, cw);
+	vec3 cameradir = normalize(cameratarget-cameraposition);
+	vec3 cameraup = cross(cameradir, vec3(0.0, 1.0,0.0));
+	vec3 viewdir = cross(cameraup, cameradir);
+	vec3 raydir = normalize(uv.x*cameraup + uv.y*viewdir + 1.3*cameradir);
+	mat3 camMat = mat3(cameraup, viewdir, cameradir);
 
 	vec3 col;
 	float distance;
 	float type;
 
-    if( !Scene(cameraPos, dir, distance, type) ) {
-		col = GetSky(dir); // Missed scene, now just get the sky
+    if( !Scene(cameraposition, raydir, distance, type) ) {
+		col = GetSky(raydir); // Missed scene, now just get the sky
 	} else {
-		vec3 pos = cameraPos + distance * dir; // Get world coordinate of landscape
+		vec3 pos = cameraposition + distance * raydir; // Get world coordinate of landscape
 		// Get normal from sampling the high definition height map
 		// Use the distance to sample larger gaps to help stop aliasing
 		vec2 p = vec2(0.1, 0.0);
@@ -278,20 +275,20 @@ void main(void) {
 		nor = normalize(nor);
 
 		// Get the colour using all available data
-		col = TerrainColour(pos, dir, nor, distance, type);
+		col = TerrainColour(pos, raydir, nor, distance, type);
 	}
 
-    // bri is the brightness of sun at the centre of the camera direction.
+    // bri is the brightness of sun at the centre of the camera raydirection.
 	// Yeah, the lens flares is not exactly subtle, but it was good fun making it.
-	float bri = dot(cw, sunLight)*.75;
+	float bri = dot(cameradir, sunLight)*.75;
     if (bri > 0.0) {
-		vec2 sunPos = vec2( dot( sunLight, cu ), dot( sunLight, cv ) );
+		vec2 sunPos = vec2( dot( sunLight, cameraup ), dot( sunLight, viewdir ) );
 		vec2 uvT = uv-sunPos;
 		uvT = uvT*(length(uvT));
 		bri = pow(bri, 6.0)*.8;
 
 		// glare = the red shifted blob...
-		float glare1 = max(dot(normalize(vec3(dir.x, dir.y+.3, dir.z)),sunLight),0.0)*1.4;
+		float glare1 = max(dot(normalize(vec3(raydir.x, raydir.y+.3, raydir.z)),sunLight),0.0)*1.4;
 		// glare2 is the yellow ring...
 		float glare2 = max(1.0-length(uvT+sunPos*.5)*4.0, 0.0);
 		uvT = mix (uvT, uv, -2.3);
