@@ -29,7 +29,7 @@ function shaderlayout() {
 
   let uniforms = {
     iTime: 0.0,
-    iResolution: [1280, 720],
+    iResolution: [1280, 640],
     earthday: 0,
     earthnight: 1,
     earthclouds: 2,

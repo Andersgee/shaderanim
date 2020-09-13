@@ -2,12 +2,10 @@
 
 in vec2 clipspace;
 
-out vec2 uv;
 out vec2 ssc;
 
 void main() {
   ssc = clipspace;
-  uv = 0.5 + 0.5*ssc;
   gl_Position = vec4(ssc, 0.0, 1.0);
 }
 
@@ -18,7 +16,6 @@ void main() {
 
 #ifdef FRAG
 
-in vec2 uv;
 in vec2 ssc;
 uniform float iTime;
 uniform vec2 iResolution;
@@ -244,7 +241,7 @@ void main(void) {
 	float m = (iMouse.x/iResolution.x)*300.0;
 	float gTime = (iTime*5.0+m+2352.0)*.006;
     vec2 xy = gl_FragCoord.xy / iResolution.xy;
-	//vec2 uv = (-1.0 + 2.0 * xy) * vec2(iResolution.x/iResolution.y,1.0);
+	vec2 uv = (-1.0 + 2.0 * xy) * vec2(iResolution.x/iResolution.y,1.0);
 	vec3 camTar;
 
     
