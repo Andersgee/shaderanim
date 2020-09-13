@@ -132,14 +132,6 @@ vec3 skycolor(in vec3 rd) {
 	return clamp01(sky);
 }
 
-float CircleOfConfusion(float t) {
-	return max(t * .04, (2.0 / iResolution.y) * (1.0+t));
-}
-
-float Linstep(float a, float b, float t) {
-	return clamp01((t-a)/(b-a));
-}
-
 vec2 Voronoi( in vec2 x ) {
 	vec2 p = floor( x );
 	vec2 f = fract( x );
@@ -160,33 +152,31 @@ vec2 Voronoi( in vec2 x ) {
 vec3 DE(vec3 p) {
 	float base = groundheight(p.xz).x - 1.9;
 	float height = Noise(p.xz*2.0)*.75 + Noise(p.xz)*.35 + Noise(p.xz*.5)*.2;
-	//p.y += height;
 	float y = p.y - base-height;
 	y = y*y;
-	vec2 ret = Voronoi((p.xz*2.5+sin(y*4.0+p.zx*12.3)*.12+vec2(sin(iTime*2.3+1.5*p.z),sin(iTime*3.6+1.5*p.x))*y*.5));
+	vec2 xz = (p.xz*2.5+sin(y*4.0+p.zx*12.3)*.12+vec2(sin(iTime*2.3+1.5*p.z),sin(iTime*3.6+1.5*p.x))*y*.5);
+	vec2 ret = Voronoi(xz);
 	float f = ret.x * .6 + y * .58;
 	return vec3( y - f*1.4, clamp01(f * 1.5), ret.y);
 }
 
+float CircleOfConfusion(float t) {
+	return max(t * .04, (2.0 / iResolution.y) * (1.0+t));
+}
+
 vec3 GrassBlades(in vec3 ro, in vec3 rd, in vec3 mat, in float dist) {
 	float d = 0.0;
-	// Only calculate cCoC once is enough here...
-	float rCoC = CircleOfConfusion(dist*.3);
-	float alpha = 0.0;
-	
+	float rCoC = CircleOfConfusion(dist*.3); // Only calculate cCoC once is enough here
+	float alpha = 0.0;	
 	vec4 col = vec4(mat*0.15, 0.0);
-
 	for (int i = 0; i < 15; i++) {
 		if (col.w > .99) break;
 		vec3 p = ro + rd * d;
-		
 		vec3 ret = DE(p);
 		ret.x += .5 * rCoC;
-
 		if (ret.x < rCoC) {
-			alpha = (1.0 - col.y) * Linstep(-rCoC, rCoC, -ret.x);//calculate the mix like cloud density
-			// Mix material with white tips for grass...
-			vec3 gra = mix(mat, vec3(.35, .35, min(pow(ret.z, 4.0)*35.0, .35)), pow(ret.y, 9.0)*.7) * ret.y;
+			alpha = (1.0 - col.y) * invmix(-rCoC, rCoC, -ret.x);//calculate the mix like cloud density
+			vec3 gra = mix(mat, vec3(.35, .35, min(pow(ret.z, 4.0)*35.0, .35)), pow(ret.y, 9.0)*.7) * ret.y; // Mix material with white tips for grass
 			col += vec4(gra * alpha, alpha);
 		}
 		d += max(ret.x * .7, .1);
@@ -194,29 +184,18 @@ vec3 GrassBlades(in vec3 ro, in vec3 rd, in vec3 mat, in float dist) {
 	if(col.w < .2){
 		col.xyz = vec3(0.1, .15, 0.05);
 	}
-	
 	return col.xyz;
 }
 
-void DoLighting(inout vec3 mat, in vec3 pos, in vec3 normal, in vec3 eyeraydir, in float dis) {
-	float h = dot(sunLight,normal);
-	mat = mat * sunColour*(max(h, 0.0)+.2);
-}
-
-vec3 ApplyFog( in vec3  rgb, in float dis, in vec3 rd) {
-	float fogAmount = clamp01(dis*dis* 0.0000012);
-	return mix( rgb, skycolor(rd), fogAmount );
-}
-
-vec3 groundcolor(vec3 pos, vec3 rd,  vec3 normal, float dis, float type) {
+vec3 groundcolor(vec3 pos, vec3 rd, vec3 N, float dis, float type) {
 	vec3 mat;
-	if (type == 0.0) {
-		mat = mix(vec3(.0,.3,.0), vec3(.2,.3,.0), Noise(pos.xz*.025)); // Random colour
-		float t = FractalNoise(pos.xz * .1)+.5; // Random shadows
-		mat = GrassBlades(pos, rd, mat, dis) * t; // Do grass blade tracing
-		DoLighting(mat, pos, normal,rd, dis);
-	}
-	mat = ApplyFog(mat, dis, rd);
+	mat = mix(vec3(0.0, 0.3, 0.0), vec3(0.2, 0.3, 0.0), Noise(pos.xz*.025)); // Random colour
+	float t = FractalNoise(pos.xz * .1)+.5; // Random shadows
+	mat = GrassBlades(pos, rd, mat, dis) * t; // Do grass blade tracing
+	float h = dot(sunLight,N);
+	mat *= sunColour*(max(h, 0.0)+0.2);
+	float fogAmount = clamp01(dis*dis* 0.0000012);
+	mat = mix(mat, skycolor(rd), fogAmount);
 	return mat;
 }
 

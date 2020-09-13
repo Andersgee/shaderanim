@@ -14,6 +14,10 @@ float max0(float x ) {
     return max(0.0, x);
 }
 
+float invmix(float a, float b, float t) {
+	return clamp01((t-a)/(b-a));
+}
+
 const float PI = 4.0*atan(1.0); //3.14159265359;
 
 float gammaexpand(float u) {
