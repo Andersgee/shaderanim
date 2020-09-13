@@ -23,7 +23,7 @@ out vec4 fragColor;
 
 #define s(a, b, x) smoothstep(a, b, x)
 #define rot(a) mat2(cos(a + PI*0.5*vec4(0,1,3,0)))
-#define Z min(0, iFrame)
+#define Z 0
 
 // simpler, easier version to compile of the dude
 // #define SIMPLE_HUMAN
@@ -246,17 +246,6 @@ void getSequence( in float time, out int seqID, out float seqTime ) {
 // 14 = left knee
 // 15 = left foot
 
-
-// normal function, call de() in a for loop for faster compile times.
-vec3 getNormal(vec3 p) {
-    vec4 n = vec4(0);
-    for (int i = Z ; i < 4 ; i++) {
-        vec4 s = vec4(p, 0);
-        s[i] += 0.001;
-        n[i] = de(s.xyz);
-    }
-    return normalize(n.xyz-n.w);
-}
 */
 
 float hash11( in float p ) {
@@ -548,9 +537,18 @@ float de( in vec3 p ) {
     return d;
 }
 
+// normal function, call de() in a for loop for faster compile times.
+vec3 getNormal(vec3 p) {
+    vec4 n = vec4(0);
+    for (int i = Z ; i < 4 ; i++) {
+        vec4 s = vec4(p, 0);
+        s[i] += 0.001;
+        n[i] = de(s.xyz);
+    }
+    return normalize(n.xyz-n.w);
+}
+
 void main(void) {
-    
-    
     // fetch the playback time
     float time = 0.0;//texelFetch(iChannel0, ivec2(0), 0).a;
     // get the sequence and the time in it
@@ -584,7 +582,7 @@ void main(void) {
     float totdist = 0.0;
     
     totdist += de(from)*hash13(vec3(gl_FragCoord.xy, iTime)); //original was iFrame here
-    /*
+    
 	for (int steps = Z ; steps < 100 ; steps++) {
 		vec3 pos = from + totdist * dir;
         
@@ -626,8 +624,6 @@ void main(void) {
     if (fragColor.a > 0.001) {
         fragColor.rgb = getNormal(bestPos);
     }
-    */
-    fragColor = vec4(1.0, 0.0, 0.0, 1.0);
 }
 
 #endif
