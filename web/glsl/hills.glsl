@@ -74,7 +74,57 @@ vec2 Terrain( in vec2 p) {
 	return vec2(f, type);
 }
 
+vec2 Map(in vec3 p) {
+	vec2 h = Terrain(p.xz);
+    return vec2(p.y - h.x, h.y);
+}
 
+float BinarySubdivision(in vec3 rO, in vec3 rD, float t, float oldT) {
+	float halfwayT = 0.0;
+	for (int n = 0; n < 5; n++) {
+		halfwayT = (oldT + t ) * .5;
+		if (Map(rO + halfwayT*rD).x < .05) {
+			t = halfwayT;
+		} else {
+			oldT = halfwayT;
+		}
+	}
+	return t;
+}
+
+bool Scene(in vec3 rO, in vec3 rD, out float resT, out float type ) {
+    float t = 5.;
+	float oldT = 0.0;
+	float delta = 0.;
+	vec2 h = vec2(1.0, 1.0);
+	bool hit = false;
+	for( int j=0; j < 70; j++ ) {
+	    vec3 p = rO + t*rD;
+		h = Map(p); // ...Get this position's height mapping.
+
+		// Are we inside, and close enough to fudge a hit?...
+		if( h.x < 0.05) {
+			hit = true;
+            break;
+		}
+	        
+		delta = h.x + (t*0.03);
+		oldT = t;
+		t += delta;
+	}
+    type = h.y;
+    resT = BinarySubdivision(rO, rD, t, oldT);
+	return hit;
+}
+
+vec3 GetSky(in vec3 rd) {
+	float sunAmount = max( dot( rd, sunLight), 0.0 );
+	float v = pow(1.0-max(rd.y,0.0),6.);
+	vec3  sky = mix(vec3(.1, .2, .3), vec3(.32, .32, .32), v);
+	sky = sky + sunColour * sunAmount * sunAmount * .25;
+	sky = sky + sunColour * min(pow(sunAmount, 800.0)*1.5, .3);
+	return clamp(sky, 0.0, 1.0);
+}
 
 void main(void) {
     vec2 iMouse = vec2(0.5, 0.5);
@@ -104,6 +154,10 @@ void main(void) {
 	vec3 col;
 	float distance;
 	float type;
+
+    if( !Scene(cameraPos, dir, distance, type) ) {
+		col = GetSky(dir); // Missed scene, now just get the sky
+	}
 
 	fragColor=vec4(1.0, 0.0, 0.0, 1.0);
 }
