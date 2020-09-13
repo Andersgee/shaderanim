@@ -135,7 +135,7 @@ vec3 GetSky(in vec3 rd) {
 	vec3  sky = mix(vec3(.1, .2, .3), vec3(.32, .32, .32), v);
 	sky = sky + sunColour * sunAmount * sunAmount * .25;
 	sky = sky + sunColour * min(pow(sunAmount, 800.0)*1.5, .3);
-	return clamp(sky, 0.0, 1.0);
+	return clamp01(sky);
 }
 
 float CircleOfConfusion(float t) {
@@ -143,7 +143,7 @@ float CircleOfConfusion(float t) {
 }
 
 float Linstep(float a, float b, float t) {
-	return clamp((t-a)/(b-a),0.,1.);
+	return clamp01((t-a)/(b-a));
 }
 
 vec2 Voronoi( in vec2 x ) {
@@ -171,7 +171,7 @@ vec3 DE(vec3 p) {
 	y = y*y;
 	vec2 ret = Voronoi((p.xz*2.5+sin(y*4.0+p.zx*12.3)*.12+vec2(sin(iTime*2.3+1.5*p.z),sin(iTime*3.6+1.5*p.x))*y*.5));
 	float f = ret.x * .6 + y * .58;
-	return vec3( y - f*1.4, clamp(f * 1.5, 0.0, 1.0), ret.y);
+	return vec3( y - f*1.4, clamp01(f * 1.5), ret.y);
 }
 
 vec3 GrassBlades(in vec3 rO, in vec3 rD, in vec3 mat, in float dist) {
@@ -208,7 +208,7 @@ void DoLighting(inout vec3 mat, in vec3 pos, in vec3 normal, in vec3 eyeDir, in 
 }
 
 vec3 ApplyFog( in vec3  rgb, in float dis, in vec3 dir) {
-	float fogAmount = clamp(dis*dis* 0.0000012, 0.0, 1.0);
+	float fogAmount = clamp01(dis*dis* 0.0000012);
 	return mix( rgb, GetSky(dir), fogAmount );
 }
 

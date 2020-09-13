@@ -6,9 +6,9 @@ precision mediump float; //max float is 2^14=16384
 //precision mediump sampler3D; //setting (any) precision is required for some reason
 //precision highp sampler3D;
 
-float clamp01(float x) {
-    return clamp(x, 0.0, 1.0);
-}
+float clamp01(float x) {return clamp(x, 0.0, 1.0);}
+vec2 clamp01(vec2 x) {return clamp(x, 0.0, 1.0);}
+vec3 clamp01(vec3 x) {return clamp(x, 0.0, 1.0);}
 
 float max0(float x ) {
     return max(0.0, x);
