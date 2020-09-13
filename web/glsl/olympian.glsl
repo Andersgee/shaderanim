@@ -37,18 +37,6 @@ out vec4 fragColor;
 vec3 skel[16];
 
 /*
-float hash11( in float p ) {
-	vec3 p3 = fract(vec3(p) * HASHSCALE1);
-    p3 += dot(p3, p3.yzx + 19.19);
-    return fract((p3.x + p3.y) * p3.z);
-}
-
-float hash12( in vec2 p ) {
-	vec3 p3 = fract(vec3(p.xyx) * HASHSCALE1);
-    p3 += dot(p3, p3.yzx + 19.19);
-    return fract((p3.x + p3.y) * p3.z);
-}
-
 float hash13( in vec3 p3 ) {
 	p3  = fract(p3 * HASHSCALE1);
     p3 += dot(p3, p3.yzx + 19.19);
@@ -113,18 +101,6 @@ vec4 hash44( in vec4 p4 ) {
 	p4 = fract(p4  * HASHSCALE4);
     p4 += dot(p4, p4.wzxy+19.19);
     return fract((p4.xxyz+p4.yzzw)*p4.zywx);
-}
-
-// 1D perlin, between -1 and 1
-float perlin( in float x, in float seed ) {
-    x += hash11(seed);
-    float a = floor(x);
-    float b = a + 1.0;
-    float f = fract(x);
-    a = hash12(vec2(seed, a));
-    b = hash12(vec2(seed, b));
-    f = f*f*(3.0-2.0*f);
-    return mix(a, b, f)*2.0-1.0;
 }
 
 // return sequence id and time in this sequence
@@ -529,6 +505,30 @@ vec3 getNormal(vec3 p) {
 }
 */
 
+float hash11( in float p ) {
+	vec3 p3 = fract(vec3(p) * HASHSCALE1);
+    p3 += dot(p3, p3.yzx + 19.19);
+    return fract((p3.x + p3.y) * p3.z);
+}
+
+float hash12( in vec2 p ) {
+	vec3 p3 = fract(vec3(p.xyx) * HASHSCALE1);
+    p3 += dot(p3, p3.yzx + 19.19);
+    return fract((p3.x + p3.y) * p3.z);
+}
+
+// 1D perlin, between -1 and 1
+float perlin( in float x, in float seed ) {
+    x += hash11(seed);
+    float a = floor(x);
+    float b = a + 1.0;
+    float f = fract(x);
+    a = hash12(vec2(seed, a));
+    b = hash12(vec2(seed, b));
+    f = f*f*(3.0-2.0*f);
+    return mix(a, b, f)*2.0-1.0;
+}
+
 // initialize skeleton
 void initSkel( in int seqID, in float seqTime, in float time ) {
     
@@ -537,14 +537,14 @@ void initSkel( in int seqID, in float seqTime, in float time ) {
     }
     
     float pTime = time*0.3;
-    float p0 = 0.0; //perlin(pTime, 0.0)*0.2;
-    float p1 = 0.0; //perlin(pTime, 1.0)*0.2;
-    float p2 = 0.0; //perlin(pTime, 2.0)*0.2;
-    float p3 = 0.0; //perlin(pTime, 3.0)*0.2;
-    float p4 = 0.0; //perlin(pTime, 4.0)*0.2;
-    float p5 = 0.0; //perlin(pTime, 5.0)*0.2;
-    float p6 = 0.0; //perlin(pTime, 6.0)*0.2;
-    float p7 = 0.0; //perlin(pTime, 7.0)*0.2;
+    float p0 = perlin(pTime, 0.0)*0.2;
+    float p1 = perlin(pTime, 1.0)*0.2;
+    float p2 = perlin(pTime, 2.0)*0.2;
+    float p3 = perlin(pTime, 3.0)*0.2;
+    float p4 = perlin(pTime, 4.0)*0.2;
+    float p5 = perlin(pTime, 5.0)*0.2;
+    float p6 = perlin(pTime, 6.0)*0.2;
+    float p7 = perlin(pTime, 7.0)*0.2;
     
         
     // appear
