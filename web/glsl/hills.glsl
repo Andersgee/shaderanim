@@ -173,7 +173,7 @@ vec3 DE(vec3 p) {
 
 vec3 GrassBlades(in vec3 rO, in vec3 rD, in vec3 mat, in float dist) {
 	float d = 0.0;
-	// Only calcamerauplate cCoC once is enough here...
+	// Only calcameraXdirlate cCoC once is enough here...
 	float rCoC = CircleOfConfusion(dist*.3);
 	float alpha = 0.0;
 	
@@ -187,7 +187,7 @@ vec3 GrassBlades(in vec3 rO, in vec3 rD, in vec3 mat, in float dist) {
 		ret.x += .5 * rCoC;
 
 		if (ret.x < rCoC) {
-			alpha = (1.0 - col.y) * Linstep(-rCoC, rCoC, -ret.x);//calcamerauplate the mix like cloud density
+			alpha = (1.0 - col.y) * Linstep(-rCoC, rCoC, -ret.x);//calcameraXdirlate the mix like cloud density
 			// Mix material with white tips for grass...
 			vec3 gra = mix(mat, vec3(.35, .35, min(pow(ret.z, 4.0)*35.0, .35)), pow(ret.y, 9.0)*.7) * ret.y;
 			col += vec4(gra * alpha, alpha);
@@ -204,20 +204,20 @@ void DoLighting(inout vec3 mat, in vec3 pos, in vec3 normal, in vec3 eyeraydir, 
 	mat = mat * sunColour*(max(h, 0.0)+.2);
 }
 
-vec3 ApplyFog( in vec3  rgb, in float dis, in vec3 raydir) {
+vec3 ApplyFog( in vec3  rgb, in float dis, in vec3 rd) {
 	float fogAmount = clamp01(dis*dis* 0.0000012);
-	return mix( rgb, GetSky(raydir), fogAmount );
+	return mix( rgb, GetSky(rd), fogAmount );
 }
 
-vec3 TerrainColour(vec3 pos, vec3 raydir,  vec3 normal, float dis, float type) {
+vec3 TerrainColour(vec3 pos, vec3 rd,  vec3 normal, float dis, float type) {
 	vec3 mat;
 	if (type == 0.0) {
 		mat = mix(vec3(.0,.3,.0), vec3(.2,.3,.0), Noise(pos.xz*.025)); // Random colour
 		float t = FractalNoise(pos.xz * .1)+.5; // Random shadows
-		mat = GrassBlades(pos, raydir, mat, dis) * t; // Do grass blade tracing
-		DoLighting(mat, pos, normal,raydir, dis);
+		mat = GrassBlades(pos, rd, mat, dis) * t; // Do grass blade tracing
+		DoLighting(mat, pos, normal,rd, dis);
 	}
-	mat = ApplyFog(mat, dis, raydir);
+	mat = ApplyFog(mat, dis, rd);
 	return mat;
 }
 
@@ -252,19 +252,20 @@ void main(void) {
 	cameratarget.y = cameraposition.y;
 	
 	vec3 cameradir = normalize(cameratarget-cameraposition);
-	vec3 cameraup = cross(cameradir, vec3(0.0, 1.0,0.0));
-	vec3 viewdir = cross(cameraup, cameradir);
-	vec3 raydir = normalize(uv.x*cameraup + uv.y*viewdir + 1.3*cameradir);
-	mat3 camMat = mat3(cameraup, viewdir, cameradir);
+	vec3 updir = vec3(0.0, 1.0, 0.0);
+	vec3 cameraXdir = cross(cameradir, updir);
+	vec3 cameraYdir = cross(cameraXdir, cameradir);
+
+	vec3 rd = normalize(uv.x*cameraXdir + uv.y*cameraYdir + 1.3*cameradir);
 
 	vec3 col;
 	float distance;
 	float type;
 
-    if( !Scene(cameraposition, raydir, distance, type) ) {
-		col = GetSky(raydir); // Missed scene, now just get the sky
+    if( !Scene(cameraposition, rd, distance, type) ) {
+		col = GetSky(rd); // Missed scene, now just get the sky
 	} else {
-		vec3 pos = cameraposition + distance * raydir; // Get world coordinate of landscape
+		vec3 pos = cameraposition + distance * rd; // Get world coordinate of landscape
 		// Get normal from sampling the high definition height map
 		// Use the distance to sample larger gaps to help stop aliasing
 		vec2 p = vec2(0.1, 0.0);
@@ -275,20 +276,20 @@ void main(void) {
 		nor = normalize(nor);
 
 		// Get the colour using all available data
-		col = TerrainColour(pos, raydir, nor, distance, type);
+		col = TerrainColour(pos, rd, nor, distance, type);
 	}
 
     // bri is the brightness of sun at the centre of the camera raydirection.
 	// Yeah, the lens flares is not exactly subtle, but it was good fun making it.
 	float bri = dot(cameradir, sunLight)*.75;
     if (bri > 0.0) {
-		vec2 sunPos = vec2( dot( sunLight, cameraup ), dot( sunLight, viewdir ) );
+		vec2 sunPos = vec2( dot( sunLight, cameraXdir ), dot( sunLight, cameraYdir ) );
 		vec2 uvT = uv-sunPos;
 		uvT = uvT*(length(uvT));
 		bri = pow(bri, 6.0)*.8;
 
 		// glare = the red shifted blob...
-		float glare1 = max(dot(normalize(vec3(raydir.x, raydir.y+.3, raydir.z)),sunLight),0.0)*1.4;
+		float glare1 = max(dot(normalize(vec3(rd.x, rd.y+.3, rd.z)),sunLight),0.0)*1.4;
 		// glare2 is the yellow ring...
 		float glare2 = max(1.0-length(uvT+sunPos*.5)*4.0, 0.0);
 		uvT = mix (uvT, uv, -2.3);
