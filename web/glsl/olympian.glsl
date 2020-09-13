@@ -365,12 +365,12 @@ void getCamera(in vec2 uv, out vec3 dir, out vec3 from){
     // look at and up vector
     vec3 up = vec3(0.0, 1.0, 0.0);
     vec3 lookAt = vec3(0.0);
-    from = vec3(0.0, 0.0, -1.0);
+    from = vec3(0.0);
     
     // rotate around our dude
     up = normalize(vec3(1.0, 10.0, 2.0));
     lookAt = vec3(0.0);
-    float rota = 0.0*0.1;
+    float rota = 0.25*PI;
     from = vec3(cos(rota), 0.0, sin(rota))*5.0;
     
     // send our dude flying
@@ -559,7 +559,7 @@ void main(void) {
     
     // get the direction and position
     vec3 dir = vec3(0);
-    vec3 from = vec3(0);
+    vec3 from = vec3(0.0);
     getCamera(uv, dir, from);
     initSkel(animframe, time); // initialize skeleton
 	
