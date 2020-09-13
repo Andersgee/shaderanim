@@ -582,9 +582,9 @@ void main(void) {
     float accAlpha = 1.0;
     // raymarch distance
     float totdist = 0.0;
-    /*
-    totdist += de(from)*hash13(vec3(fragCoord, iFrame));
     
+    totdist += de(from)*hash13(vec3(gl_FragCoord.xy, iTime)); //original was iFrame here
+    /*
 	for (int steps = Z ; steps < 100 ; steps++) {
 		vec3 pos = from + totdist * dir;
         
