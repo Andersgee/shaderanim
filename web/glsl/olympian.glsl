@@ -229,23 +229,6 @@ void getSequence( in float time, out int seqID, out float seqTime ) {
 
 }
 
-// 0  = upper body
-// 1  = lower body
-// 2  = neck
-// 3  = head
-// 4  = right shoulder
-// 5  = right elbow
-// 6  = right hand
-// 7  = left shoulder
-// 8  = left elbow
-// 9  = left hand
-// 10 = right hip
-// 11 = right knee
-// 12 = right foot
-// 13 = left hip
-// 14 = left knee
-// 15 = left foot
-
 */
 
 float hash11( in float p ) {
@@ -287,10 +270,29 @@ vec3 rotateArm(vec3 p, int i ) {
     return p;
 }
 
+/*
+// 0  = upper body
+// 1  = lower body
+// 2  = neck
+// 3  = head
+// 4  = right shoulder
+// 5  = right elbow
+// 6  = right hand
+// 7  = left shoulder
+// 8  = left elbow
+// 9  = left hand
+// 10 = right hip
+// 11 = right knee
+// 12 = right foot
+// 13 = left hip
+// 14 = left knee
+// 15 = left foot
+*/
+
 // initialize skeleton
 void initSkel(in float animframe, in float time) {
     for (int i = 0 ; i < skel.length() ; i++) {
-        skel[i] = vec3(0);
+        skel[i] = vec3(0.0);
     }
     
     float pTime = time*0.3;
