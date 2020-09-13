@@ -229,15 +229,6 @@ void getSequence( in float time, out int seqID, out float seqTime ) {
 
 }
 
-// rotate an arm
-vec3 rotateArm(vec3 p, int i ) {
-    vec3 pitchYawRoll = skel[i];
-    p.xz *= rot(pitchYawRoll.y);
-    p.xy *= rot(pitchYawRoll.x);
-    p.yz *= rot(pitchYawRoll.z);
-    return p;
-}
-
 // 0  = upper body
 // 1  = lower body
 // 2  = neck
@@ -296,6 +287,15 @@ float perlin( in float x, in float seed ) {
     b = hash12(vec2(seed, b));
     f = f*f*(3.0-2.0*f);
     return mix(a, b, f)*2.0-1.0;
+}
+
+// rotate an arm
+vec3 rotateArm(vec3 p, int i ) {
+    vec3 pitchYawRoll = skel[i];
+    p.xz *= rot(pitchYawRoll.y);
+    p.xy *= rot(pitchYawRoll.x);
+    p.yz *= rot(pitchYawRoll.z);
+    return p;
 }
 
 // initialize skeleton
@@ -509,9 +509,7 @@ float de( in vec3 p ) {
     float head = getHead(inHead);
     // do the arms
     vec3 inShoulder = inUpperBody - vec3(0.4, 0.48, -0.12);
-    /*
     inShoulder = rotateArm(inShoulder, 4+upperOffset);
-    
     float shoulder = getUpperArm(inShoulder);
     vec3 inElbow = inShoulder - vec3(0.79, 0, 0);
     inElbow = rotateArm(inElbow, 5+upperOffset);
@@ -548,8 +546,6 @@ float de( in vec3 p ) {
     d = smin(d, arms, 0.1);
     d = smin(d, legs, 0.05);
     return d;
-    */
-    return 0.5;
 }
 
 void main(void) {
