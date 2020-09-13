@@ -154,48 +154,6 @@ vec3 rotateArm(vec3 p, int i ) {
 // 14 = left knee
 // 15 = left foot
 
-float getPelvis( in vec3 p ) {
-    
-    #ifdef SIMPLE_HUMAN
-    return sdBox(p - vec3(0, -0.45, 0.08), vec3(0.13, 0.3, 0))-0.2;
-    #endif
-    
-    vec3 mainDim = vec3(0.17, 0.3, 0);
-    mainDim.x += sin(p.y*6.0)*0.04;
-    vec3 inMain = p - vec3(0, -0.45, 0.07);
-    inMain.z -= cos(inMain.y*6.0)*0.02;
-    
-    float main = sdBox(inMain, mainDim) - 0.2;
-    
-    vec3 absDim = vec3(0.13, 0.29, 0.0);
-    absDim.z -= cos(p.x*30.0)*0.007;
-    absDim.z -= cos(p.y*36.0)*0.007;
-    vec3 inAbs = inMain - vec3(0, 0.1, 0.13);
-    float absD = sdBox(inAbs, absDim)-0.1;
-    
-    vec3 penisDim = vec3(0.03, 0.05, 0.05);
-    penisDim.x -= sin(p.y*10.0)*0.03;
-    vec3 inPenis = p - vec3(0, -0.9, 0.13);
-    inPenis.z += inPenis.y*0.2;
-    float penis = sdBox(inPenis, penisDim)-0.12;
-    
-    float butt = sdEllipsoid(p - vec3(0.17, -0.75, -0.03),
-                             vec3(0.2, 0.28, 0.2));
-    
-    float spine = s(0.1, 0.0, p.x)*s(0.1, -0.1, p.z);
-    
-    float d = main;
-    d = smin(d, absD, 0.1);
-    d = smin(d, penis, 0.1);
-    d = smin(d, butt, 0.1);
-    d += spine*0.02;
-    return d;
-}
-
-float getNeck( in vec3 p ) {
-    return sdCapsule(p, vec3(0), vec3(0, 0.24, 0.07), 0.15);
-}
-
 float getHead( in vec3 p ) {
     
     #ifdef SIMPLE_HUMAN
@@ -526,6 +484,48 @@ float getTorso( in vec3 p ) {
     return d;
 }
 
+float getPelvis( in vec3 p ) {
+    
+    #ifdef SIMPLE_HUMAN
+    return sdBox(p - vec3(0, -0.45, 0.08), vec3(0.13, 0.3, 0))-0.2;
+    #endif
+    
+    vec3 mainDim = vec3(0.17, 0.3, 0);
+    mainDim.x += sin(p.y*6.0)*0.04;
+    vec3 inMain = p - vec3(0, -0.45, 0.07);
+    inMain.z -= cos(inMain.y*6.0)*0.02;
+    
+    float main = sdBox(inMain, mainDim) - 0.2;
+    
+    vec3 absDim = vec3(0.13, 0.29, 0.0);
+    absDim.z -= cos(p.x*30.0)*0.007;
+    absDim.z -= cos(p.y*36.0)*0.007;
+    vec3 inAbs = inMain - vec3(0, 0.1, 0.13);
+    float absD = sdBox(inAbs, absDim)-0.1;
+    
+    vec3 penisDim = vec3(0.03, 0.05, 0.05);
+    penisDim.x -= sin(p.y*10.0)*0.03;
+    vec3 inPenis = p - vec3(0, -0.9, 0.13);
+    inPenis.z += inPenis.y*0.2;
+    float penis = sdBox(inPenis, penisDim)-0.12;
+    
+    float butt = sdEllipsoid(p - vec3(0.17, -0.75, -0.03),
+                             vec3(0.2, 0.28, 0.2));
+    
+    float spine = s(0.1, 0.0, p.x)*s(0.1, -0.1, p.z);
+    
+    float d = main;
+    d = smin(d, absD, 0.1);
+    d = smin(d, penis, 0.1);
+    d = smin(d, butt, 0.1);
+    d += spine*0.02;
+    return d;
+}
+
+float getNeck( in vec3 p ) {
+    return sdCapsule(p, vec3(0), vec3(0, 0.24, 0.07), 0.15);
+}
+
 // main distance function
 float de( in vec3 p ) {
     p.y += 0.5;
@@ -544,11 +544,7 @@ float de( in vec3 p ) {
     inUpperBody = vec3(abs(inUpperBody.x), inUpperBody.yz);
     inLowerBody = vec3(abs(inLowerBody.x), inLowerBody.yz);
     
-    // do the torso
-    
     float torso = getTorso(inUpperBody);
-    /*
-    // do the pelvis
     float pelvis = getPelvis(inLowerBody);
     
     // do the neck and head
@@ -557,6 +553,7 @@ float de( in vec3 p ) {
     float neck = getNeck(inNeck);
     vec3 inHead = inNeck - vec3(0, 0.24, 0.07);
     inHead = rotateLimb(inHead, 3);
+    /*
     float head = getHead(inHead);
     
     // do the arms
