@@ -252,7 +252,7 @@ void main(void) {
     cameraPos.x -= 3.0;
 	camTar	 = CameraPath(gTime + .009);
 	cameraPos.y += Terrain(CameraPath(gTime + .009).xz).x;
-	camTar.y = cameraPos.y;
+	camTar.y = cameraPos.y-2.4;
 	
     
 	float roll = .4*sin(gTime+.5);
