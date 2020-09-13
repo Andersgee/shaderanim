@@ -290,6 +290,7 @@ vec3 rotateArm(vec3 p, int i ) {
 */
 
 // initialize skeleton
+// skeleton, represented as pitch/yaw/roll rotations
 void initSkel(in float animframe, in float time) {
     for (int i = 0 ; i < skel.length() ; i++) {
         skel[i] = vec3(0.0);
@@ -553,7 +554,7 @@ vec3 getNormal(vec3 p) {
 
 void main(void) {
     // fetch the playback time
-    float time = 0.0;//texelFetch(iChannel0, ivec2(0), 0).a;
+    float time = iTime;//0.0;//texelFetch(iChannel0, ivec2(0), 0).a;
     float animframe = 10.0;
     
     vec2 uv = gl_FragCoord.xy-iResolution.xy*0.5; // Normalized pixel coordinates (from 0 to 1)
@@ -574,13 +575,14 @@ void main(void) {
     
     totdist += de(from)*hash13(vec3(gl_FragCoord.xy, iTime)); //original was iFrame here
     
-	for (int steps = Z ; steps < 100 ; steps++) {
+	for (int steps = Z ; steps < 50 ; steps++) { //original was 100 steps
 		vec3 pos = from + totdist * dir;
         
         // bounding sphere optimisation
         float dist = length(pos) - 4.0;
         if (dist < 1.0) {
             dist = de(pos); //get actual distance
+            
             //and cone trace it
             float r = totdist*sinPix;
             float alpha = s(-r, r, dist);
