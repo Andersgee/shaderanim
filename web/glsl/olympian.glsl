@@ -288,7 +288,7 @@ vec3 rotateArm(vec3 p, int i ) {
 }
 
 // initialize skeleton
-void initSkel(in int seqID, in float seqTime, in float time) {
+void initSkel(in float seqTime, in float time) {
     for (int i = 0 ; i < skel.length() ; i++) {
         skel[i] = vec3(0);
     }
@@ -360,7 +360,7 @@ void initSkel(in int seqID, in float seqTime, in float time) {
 }
 
 // camera direction and position
-void getCamera(in vec2 uv, in int seqID, in float seqTime, out vec3 dir, out vec3 from){
+void getCamera(in vec2 uv, in float seqTime, out vec3 dir, out vec3 from){
     // look at and up vector
     vec3 up = vec3(0.0, 1.0, 0.0);
     vec3 lookAt = vec3(0.0);
@@ -551,35 +551,23 @@ vec3 getNormal(vec3 p) {
 void main(void) {
     // fetch the playback time
     float time = 0.0;//texelFetch(iChannel0, ivec2(0), 0).a;
-    // get the sequence and the time in it
-    int seqID = 0;
     float seqTime = 0.0;
     
-    //getSequence(time, seqID, seqTime);
-    
-    // Normalized pixel coordinates (from 0 to 1)
-    vec2 uv = gl_FragCoord.xy-iResolution.xy*0.5;
+    vec2 uv = gl_FragCoord.xy-iResolution.xy*0.5; // Normalized pixel coordinates (from 0 to 1)
     uv /= iResolution.y;
     
     // get the direction and position
     vec3 dir = vec3(0);
     vec3 from = vec3(0);
-    
-    getCamera(uv, seqID, seqTime, dir, from);
-    
-    // initialize skeleton
-    initSkel(seqID, seqTime, time);
+    getCamera(uv, seqTime, dir, from);
+    initSkel(seqTime, time); // initialize skeleton
 	
-    // extent of a pixel, depends on the resolution
     float fov = 1.0;
-    float sinPix = sin(fov/iResolution.y)*2.0;
-    // keep best position
-    vec3 bestPos = vec3(0);
+    float sinPix = sin(fov/iResolution.y)*2.0; // extent of a pixel, depends on the resolution
+    vec3 bestPos = vec3(0); // keep best position
     float bestPosDist = 999.9;
-    // accumulated opacity
-    float accAlpha = 1.0;
-    // raymarch distance
-    float totdist = 0.0;
+    float accAlpha = 1.0; // accumulated opacity
+    float totdist = 0.0; // raymarch distance
     
     totdist += de(from)*hash13(vec3(gl_FragCoord.xy, iTime)); //original was iFrame here
     
@@ -589,15 +577,12 @@ void main(void) {
         // bounding sphere optimisation
         float dist = length(pos) - 4.0;
         if (dist < 1.0) {
-            // get actual distance
-            dist = de(pos);
-            // and cone trace it
+            dist = de(pos); //get actual distance
+            //and cone trace it
             float r = totdist*sinPix;
             float alpha = s(-r, r, dist);
             accAlpha *= alpha;
-            // since the legs and arms are very susceptible
-            // to overstepping, clamp to a maximum value
-            dist = min(0.2, dist);
+            dist = min(0.2, dist); // since the legs and arms are very susceptible to overstepping, clamp to a maximum value
         }
         
         // keep the closest point to the surface
@@ -614,7 +599,6 @@ void main(void) {
 		
         // continue forward
         totdist += min(999.9, dist*0.9);
-        
 	}
     
     fragColor.rgb = vec3(0);
