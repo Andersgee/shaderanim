@@ -27,7 +27,7 @@ uniform sampler2D earthcloudtrans;
 uniform sampler2D earthwater;
 uniform sampler2D earthbump;
 
-uniform float time;
+uniform float iTime;
 
 out vec4 fragcolor;
 
@@ -35,7 +35,7 @@ vec2 spherenormal2uv(vec3 N, float rotspeed) {
   float u = atan(N.z, N.x)/PI + 0.5;
   float v = 0.5*N.y + 0.5;
   //return vec2(u,v);
-  u = fract(u - time*rotspeed);
+  u = fract(u - iTime*rotspeed);
   return vec2(u,1.0-v);
 }
 
