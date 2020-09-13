@@ -36,6 +36,107 @@ out vec4 fragColor;
 // skeleton, represented as pitch/yaw/roll rotations
 vec3 skel[16];
 
+float getHead( in vec3 p ) {
+    vec3 brainDim = vec3(0.2, 0.23, 0.22);
+    vec3 inBrain = p - vec3(0, 0.27, 0.0);
+    float brain = sdEllipsoid(inBrain, brainDim);
+    
+    vec3 faceDim = vec3(0.04, 0.19, 0.03);
+    faceDim.x += sin(p.y*5.0)*0.05;
+    faceDim.z += cos(p.x*15.0)*0.02;
+    faceDim.z += sin(p.y*6.0)*0.03;
+    vec3 inFace = p - vec3(0, 0.18, 0.11);
+    float face = sdBox(inFace, faceDim) - 0.1;
+    
+    float d = brain;
+    d = smin(d, face, 0.1);
+    return d;
+}
+
+float getUpperArm( in vec3 p ) {
+    vec3 shoulderDim = vec3(0.23, 0.15, 0.18);
+    float shoulder = sdEllipsoid(p - vec3(0.05, 0.05, 0.0), shoulderDim);
+    
+    float muscle1Rad = 0.09;
+    muscle1Rad -= cos(p.x*8.0)*0.02;
+    vec3 muscle1Pos1 = vec3(0.0, 0.05, 0.03);
+    vec3 muscle1Pos2 = vec3(0.74, 0.05, 0.03);
+    float muscle1 = sdCapsule(p, muscle1Pos1, muscle1Pos2, muscle1Rad);
+    
+    float muscle2Rad = 0.09;
+    muscle2Rad += sin(p.x*7.0)*0.02;
+    vec3 muscle2Pos1 = vec3(0.0, -0.04, -0.03);
+    vec3 muscle2Pos2 = vec3(0.78, -0.02, -0.03);
+    float muscle2 = sdCapsule(p, muscle2Pos1, muscle2Pos2, muscle2Rad);
+    
+    float d = shoulder;
+    d = smin(d, muscle1, 0.03);
+    d = smin(d, muscle2, 0.03);
+    return d;
+}
+
+float getForearm( in vec3 p ) {
+    const vec3 handPos = vec3(0.58, 0, 0);
+    float rad = 0.06 + sin(p.x*9.0)*0.01;
+    float muscle1 = sdCapsule(p, vec3(0.06, 0.06, 0.0), handPos+vec3(0, 0.05, 0), rad);
+    float muscle2 = sdCapsule(p, vec3(0.04, -0.02, 0.03), handPos+vec3(0, -0.01, 0), rad);
+    float elbow = length(p)-0.08;
+    float d = muscle1;
+    d = smin(d, muscle2, 0.03);
+    d = smin(d, elbow, 0.05);
+    return d;
+}
+
+float getHand( in vec3 p ) {
+    vec3 handDim = vec3(0.08, 0.07, 0.01);
+    float cu1 = cos(p.y*11.0-0.3);
+	handDim.x += cu1*0.06;
+    handDim.z += cu1*0.03;
+    handDim.z -= sin(p.x*4.0)*0.05;
+    float hand = sdBox(p - vec3(0.25, 0.02, 0.0), handDim) - 0.05;
+    float thumb = sdCapsule(p, vec3(0.1, 0.02, 0.03), vec3(0.15, 0.18, 0.06), 0.04);
+    float d = hand;
+    d = smin(d, thumb, 0.07);
+    return d;
+}
+
+float getUpperLeg( in vec3 p ) {
+    const vec3 kneePos = vec3(0, -1.01, 0);
+    float muscle1Rad = 0.15 - sin(p.y*4.0)*0.03;
+    float muscle1 = sdCapsule(p, vec3(0.03, 0.0, 0.1), kneePos, muscle1Rad);
+    float muscle2 = sdCapsule(p, vec3(-0.12, 0.0, -0.05), kneePos, muscle1Rad);
+    float knee = sdEllipsoid(p - vec3(0, -0.95, 0.03), vec3(0.12, 0.2, 0.12));
+    float d = muscle1;
+    d = smin(d, muscle2, 0.02);
+    d = smin(d, knee, 0.03);
+    
+    return d;
+}
+
+float getLowerLeg( in vec3 p ) {
+    const vec3 footPos = vec3(0, -1.06, -0.08);
+    float muscle1Rad = 0.1 - sin(p.y*4.0)*0.03;
+    float muscle1 = sdCapsule(p, vec3(0.02, 0.0, 0.0), footPos, muscle1Rad);
+    float muscle2Rad = 0.09 - sin(p.y*5.3)*0.05;
+    float muscle2 = sdCapsule(p, vec3(-0.02, 0.04, -0.08), footPos + vec3(0.0, 0.04, -0.02), muscle2Rad);
+    float d = muscle1;
+    d = smin(d, muscle2, 0.02);
+    return d;    
+}
+
+float getFoot( in vec3 p ) {
+    vec3 footDim = vec3(0.04, 0.0, 0.19);
+    footDim.x -= cos(p.z*13.0-0.4)*0.04;
+    footDim.z += cos(p.x*14.0+0.2)*0.05;
+    vec3 inFoot = p - vec3(0.03, -0.13, 0.19);
+    float foot = sdBox(inFoot, footDim)-0.05;
+    float ankle = sdEllipsoid(inFoot - vec3(0.0, 0.07, -0.13), vec3(0.1, 0.08, 0.18));
+    float d = foot;
+    d = smin(d, ankle, 0.1);
+    return d;
+}
+
+
 /*
 vec2 hash21( in float p ) {
 	vec3 p3 = fract(vec3(p) * HASHSCALE3);
@@ -154,155 +255,6 @@ vec3 rotateArm(vec3 p, int i ) {
 // 14 = left knee
 // 15 = left foot
 
-float getHead( in vec3 p ) {
-    
-    #ifdef SIMPLE_HUMAN
-    return sdBox(p - vec3(0, 0.18, 0.05), vec3(0.1, 0.19, 0.14))-0.1;
-    #endif
-    
-    vec3 brainDim = vec3(0.2, 0.23, 0.22);
-    vec3 inBrain = p - vec3(0, 0.27, 0.0);
-    float brain = sdEllipsoid(inBrain, brainDim);
-    
-    vec3 faceDim = vec3(0.04, 0.19, 0.03);
-    faceDim.x += sin(p.y*5.0)*0.05;
-    faceDim.z += cos(p.x*15.0)*0.02;
-    faceDim.z += sin(p.y*6.0)*0.03;
-    vec3 inFace = p - vec3(0, 0.18, 0.11);
-    float face = sdBox(inFace, faceDim) - 0.1;
-    
-    float d = brain;
-    d = smin(d, face, 0.1);
-    return d;
-}
-
-float getUpperArm( in vec3 p ) {
-    
-    #ifdef SIMPLE_HUMAN
-    return sdCapsule(p, vec3(0), vec3(0.89, 0, 0), 0.1);
-    #endif
-    
-    vec3 shoulderDim = vec3(0.23, 0.15, 0.18);
-    float shoulder = sdEllipsoid(p - vec3(0.05, 0.05, 0.0), shoulderDim);
-    
-    float muscle1Rad = 0.09;
-    muscle1Rad -= cos(p.x*8.0)*0.02;
-    vec3 muscle1Pos1 = vec3(0.0, 0.05, 0.03);
-    vec3 muscle1Pos2 = vec3(0.74, 0.05, 0.03);
-    float muscle1 = sdCapsule(p, muscle1Pos1, muscle1Pos2, muscle1Rad);
-    
-    float muscle2Rad = 0.09;
-    muscle2Rad += sin(p.x*7.0)*0.02;
-    vec3 muscle2Pos1 = vec3(0.0, -0.04, -0.03);
-    vec3 muscle2Pos2 = vec3(0.78, -0.02, -0.03);
-    float muscle2 = sdCapsule(p, muscle2Pos1, muscle2Pos2, muscle2Rad);
-    
-    float d = shoulder;
-    d = smin(d, muscle1, 0.03);
-    d = smin(d, muscle2, 0.03);
-    return d;
-}
-
-float getForearm( in vec3 p ) {
-    const vec3 handPos = vec3(0.58, 0, 0);
-    
-    #ifdef SIMPLE_HUMAN
-    return sdCapsule(p, vec3(0), handPos, 0.1);
-    #endif
-    
-    float rad = 0.06 + sin(p.x*9.0)*0.01;
-    float muscle1 = sdCapsule(p, vec3(0.06, 0.06, 0.0),
-                              handPos+vec3(0, 0.05, 0), rad);
-    float muscle2 = sdCapsule(p, vec3(0.04, -0.02, 0.03),
-                              handPos+vec3(0, -0.01, 0), rad);
-    
-    float elbow = length(p)-0.08;
-    
-    float d = muscle1;
-    d = smin(d, muscle2, 0.03);
-    d = smin(d, elbow, 0.05);
-    return d;
-}
-
-float getHand( in vec3 p ) {
-    
-    #ifdef SIMPLE_HUMAN
-    return sdBox(p - vec3(0.25, 0.02, 0.0), vec3(0.14, 0.07, 0.0)) - 0.05;
-    #endif
-    
-    vec3 handDim = vec3(0.08, 0.07, 0.01);
-    float cu1 = cos(p.y*11.0-0.3);
-	handDim.x += cu1*0.06;
-    handDim.z += cu1*0.03;
-    handDim.z -= sin(p.x*4.0)*0.05;
-    
-    float hand = sdBox(p - vec3(0.25, 0.02, 0.0), handDim) - 0.05;
-    float thumb = sdCapsule(p, vec3(0.1, 0.02, 0.03),
-                            vec3(0.15, 0.18, 0.06), 0.04);
-    
-    float d = hand;
-    d = smin(d, thumb, 0.07);
-    return d;
-}
-
-float getUpperLeg( in vec3 p ) {
-    const vec3 kneePos = vec3(0, -1.01, 0);
-    
-    #ifdef SIMPLE_HUMAN
-    return sdCapsule(p, vec3(0), kneePos, 0.15);
-    #endif
-    
-    float muscle1Rad = 0.15 - sin(p.y*4.0)*0.03;
-    float muscle1 = sdCapsule(p, vec3(0.03, 0.0, 0.1), kneePos, muscle1Rad);
-    float muscle2 = sdCapsule(p, vec3(-0.12, 0.0, -0.05), kneePos, muscle1Rad);
-    
-    float knee = sdEllipsoid(p - vec3(0, -0.95, 0.03), vec3(0.12, 0.2, 0.12));
-    
-    float d = muscle1;
-    d = smin(d, muscle2, 0.02);
-    d = smin(d, knee, 0.03);
-    
-    return d;
-}
-
-float getLowerLeg( in vec3 p ) {
-    const vec3 footPos = vec3(0, -1.06, -0.08);
-    
-    #ifdef SIMPLE_HUMAN
-    return sdCapsule(p, vec3(0), footPos, 0.15);
-    #endif
-    
-    float muscle1Rad = 0.1 - sin(p.y*4.0)*0.03;
-    float muscle1 = sdCapsule(p, vec3(0.02, 0.0, 0.0), footPos, muscle1Rad);
-    
-    float muscle2Rad = 0.09 - sin(p.y*5.3)*0.05;
-    float muscle2 = sdCapsule(p, vec3(-0.02, 0.04, -0.08),
-                              footPos + vec3(0.0, 0.04, -0.02), muscle2Rad);
-    
-    float d = muscle1;
-    d = smin(d, muscle2, 0.02);
-    return d;    
-}
-
-float getFoot( in vec3 p ) {
-    
-    #ifdef SIMPLE_HUMAN
-    return sdBox(p - vec3(0.0, -0.13, 0.15), vec3(0.08, 0.0, 0.25))-0.05;
-    #endif
-    
-    vec3 footDim = vec3(0.04, 0.0, 0.19);
-    footDim.x -= cos(p.z*13.0-0.4)*0.04;
-    footDim.z += cos(p.x*14.0+0.2)*0.05;
-    vec3 inFoot = p - vec3(0.03, -0.13, 0.19);
-    float foot = sdBox(inFoot, footDim)-0.05;
-    
-    float ankle = sdEllipsoid(inFoot - vec3(0.0, 0.07, -0.13),
-                              vec3(0.1, 0.08, 0.18));
-    
-    float d = foot;
-    d = smin(d, ankle, 0.1);
-    return d;
-}
 
 // normal function, call de() in a for loop for faster compile times.
 vec3 getNormal(vec3 p) {
@@ -553,12 +505,13 @@ float de( in vec3 p ) {
     float neck = getNeck(inNeck);
     vec3 inHead = inNeck - vec3(0, 0.24, 0.07);
     inHead = rotateLimb(inHead, 3);
-    /*
-    float head = getHead(inHead);
     
+    float head = getHead(inHead);
     // do the arms
     vec3 inShoulder = inUpperBody - vec3(0.4, 0.48, -0.12);
+    /*
     inShoulder = rotateArm(inShoulder, 4+upperOffset);
+    
     float shoulder = getUpperArm(inShoulder);
     vec3 inElbow = inShoulder - vec3(0.79, 0, 0);
     inElbow = rotateArm(inElbow, 5+upperOffset);
