@@ -37,12 +37,6 @@ out vec4 fragColor;
 vec3 skel[16];
 
 /*
-float hash13( in vec3 p3 ) {
-	p3  = fract(p3 * HASHSCALE1);
-    p3 += dot(p3, p3.yzx + 19.19);
-    return fract((p3.x + p3.y) * p3.z);
-}
-
 vec2 hash21( in float p ) {
 	vec3 p3 = fract(vec3(p) * HASHSCALE3);
 	p3 += dot(p3, p3.yzx + 19.19);
@@ -517,6 +511,12 @@ float hash12( in vec2 p ) {
     return fract((p3.x + p3.y) * p3.z);
 }
 
+float hash13( in vec3 p3 ) {
+	p3  = fract(p3 * HASHSCALE1);
+    p3 += dot(p3, p3.yzx + 19.19);
+    return fract((p3.x + p3.y) * p3.z);
+}
+
 // 1D perlin, between -1 and 1
 float perlin( in float x, in float seed ) {
     x += hash11(seed);
@@ -530,8 +530,7 @@ float perlin( in float x, in float seed ) {
 }
 
 // initialize skeleton
-void initSkel( in int seqID, in float seqTime, in float time ) {
-    
+void initSkel(in int seqID, in float seqTime, in float time) {
     for (int i = 0 ; i < skel.length() ; i++) {
         skel[i] = vec3(0);
     }
@@ -545,7 +544,6 @@ void initSkel( in int seqID, in float seqTime, in float time ) {
     float p5 = perlin(pTime, 5.0)*0.2;
     float p6 = perlin(pTime, 6.0)*0.2;
     float p7 = perlin(pTime, 7.0)*0.2;
-    
         
     // appear
     skel[2] = vec3(0.1, 0, 0);
@@ -650,12 +648,12 @@ void main(void) {
     vec3 from = vec3(0);
     
     getCamera(uv, seqID, seqTime, dir, from);
-    /*
+    
     // initialize skeleton
     initSkel(seqID, seqTime, time);
 	
     // extent of a pixel, depends on the resolution
-    float fov = getFOV(seqID, seqTime);
+    float fov = 1.0;
     float sinPix = sin(fov/iResolution.y)*2.0;
     // keep best position
     vec3 bestPos = vec3(0);
@@ -664,6 +662,7 @@ void main(void) {
     float accAlpha = 1.0;
     // raymarch distance
     float totdist = 0.0;
+    /*
     totdist += de(from)*hash13(vec3(fragCoord, iFrame));
     
 	for (int steps = Z ; steps < 100 ; steps++) {
