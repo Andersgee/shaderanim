@@ -128,35 +128,6 @@ void getSequence( in float time, out int seqID, out float seqTime ) {
 
 }
 
-// iq distance functions
-float sdBox( in vec3 p, in vec3 b ) {
-	vec3 d = abs(p) - b;
-	return min(max(d.x,max(d.y,d.z)),0.0) + length(max(d,0.0));
-}
-float sdCapsule( in vec3 p, in vec3 a, in vec3 b, in float r ) {
-    vec3 pa = p - a, ba = b - a;
-    float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
-    return length( pa - ba*h ) - r;
-}
-float sdEllipsoid( in vec3 p, in vec3 r ) {
-    return (length( p/r ) - 1.0) * min(min(r.x,r.y),r.z);
-}
-float smin( in float a, in float b, in float s ) {
-    float h = clamp( 0.5 + 0.5*(b-a)/s, 0.0, 1.0 );
-    return mix(b, a, h) - h*(1.0-h)*s;
-}
-
-
-
-// rotate a limb
-vec3 rotateLimb( in vec3 p, in int i ) {
-    vec3 pitchYawRoll = skel[i];
-    p.xz *= rot(pitchYawRoll.y);
-    p.yz *= rot(pitchYawRoll.x);
-    p.xz *= rot(pitchYawRoll.z);
-    return p;
-}
-
 // rotate an arm
 vec3 rotateArm(vec3 p, int i ) {
     vec3 pitchYawRoll = skel[i];
@@ -182,41 +153,6 @@ vec3 rotateArm(vec3 p, int i ) {
 // 13 = left hip
 // 14 = left knee
 // 15 = left foot
-
-float getTorso( in vec3 p ) {
-    
-    #ifdef SIMPLE_HUMAN
-    return sdBox(p - vec3(0, 0.25, 0.0), vec3(0.3, 0.25, 0.1))-0.15;
-    #endif
-    
-    vec3 mainDim = vec3(0.35, 0.15, 0.05);
-    mainDim.x -= cos(p.y*2.0+0.8)*0.19;
-    mainDim.y -= cos(p.x*7.0)*0.05;
-    vec3 inTorso = p - vec3(0, 0.15, 0.05);
-    inTorso.z += s(-0.2, 0.5, inTorso.y)*0.2;
-    float torso = sdBox(inTorso, mainDim) - 0.15;
-    
-    vec3 trapDim = vec3(0.15, 0.13, 0);
-    vec3 inTrap = inTorso - vec3(0.2, 0.33, -0.07);
-    inTrap.xy *= rot(0.4);
-    inTrap.yz *= rot(-0.2);
-    float trap = sdBox(inTrap, trapDim)-0.13;
-    
-    vec3 pecDim = vec3(0.11, 0.08, 0.0);
-    pecDim.y += sin(inTorso.x*7.5)*0.05;
-    vec3 inPec = inTorso - vec3(0.19, 0.2, 0.12);
-    float pec = sdBox(inPec, pecDim) - 0.1;
-    float pecMore = length(inPec)-0.15;
-    pec = smin(pec, pecMore, 0.25);
-    
-    float spine = s(0.13, 0.0, p.x)*s(0.1, -0.3, p.z);
-    
-    float d = torso;
-    d = smin(d, trap, 0.1);
-    d = smin(d, pec, 0.05);
-    d += spine*0.02;
-    return d;
-}
 
 float getPelvis( in vec3 p ) {
     
@@ -410,83 +346,6 @@ float getFoot( in vec3 p ) {
     return d;
 }
 
-
-// main distance function
-float de( in vec3 p ) {
-    
-    p.y += 0.5;
-    
-    // main pivot point is upper body
-    vec3 inUpperBody = p;
-    inUpperBody = rotateLimb(inUpperBody, 0);
-    
-    inUpperBody -= vec3(0, 1.3, 0);
-    vec3 inLowerBody = inUpperBody;
-    inLowerBody = rotateLimb(inLowerBody, 1);
-    
-    // keep upper body unflipped for the head
-    vec3 inUpperBodyNoFlip = inUpperBody;
-    // do some flipping
-    int upperOffset = int(inUpperBody.x > 0.0)*3;
-    int lowerOffset = int(inLowerBody.x > 0.0)*3;
-    inUpperBody = vec3(abs(inUpperBody.x), inUpperBody.yz);
-    inLowerBody = vec3(abs(inLowerBody.x), inLowerBody.yz);
-    
-    // do the torso
-    float torso = getTorso(inUpperBody);
-    
-    // do the pelvis
-    float pelvis = getPelvis(inLowerBody);
-    
-    // do the neck and head
-    vec3 inNeck = inUpperBodyNoFlip - vec3(0, 0.68, -0.1);
-    inNeck = rotateLimb(inNeck, 2);
-    float neck = getNeck(inNeck);
-    vec3 inHead = inNeck - vec3(0, 0.24, 0.07);
-    inHead = rotateLimb(inHead, 3);
-    float head = getHead(inHead);
-    
-    // do the arms
-    vec3 inShoulder = inUpperBody - vec3(0.4, 0.48, -0.12);
-    inShoulder = rotateArm(inShoulder, 4+upperOffset);
-    float shoulder = getUpperArm(inShoulder);
-    vec3 inElbow = inShoulder - vec3(0.79, 0, 0);
-    inElbow = rotateArm(inElbow, 5+upperOffset);
-    float elbow = getForearm(inElbow);
-    vec3 inHand = inElbow - vec3(0.56, 0, 0);
-    inHand = rotateArm(inHand, 6+upperOffset);
-    float hand = getHand(inHand);
-    
-    // do the legs
-    vec3 inHip = inLowerBody - vec3(0.25, -0.79, 0);
-    inHip = rotateLimb(inHip, 10+lowerOffset);
-    float hip = getUpperLeg(inHip);
-    vec3 inKnee = inHip - vec3(0, -1.01, 0);
-    inKnee = rotateLimb(inKnee, 11+lowerOffset);
-    float knee = getLowerLeg(inKnee);
-    vec3 inFoot = inKnee - vec3(0, -1.06, -0.08);
-    inFoot = rotateLimb(inFoot, 12+lowerOffset);
-    float foot = getFoot(inFoot);
-    
-    // blend the body together
-    float d = torso;
-    d = smin(d, pelvis, 0.2);
-    d = smin(d, neck, 0.15);
-    d = smin(d, head, 0.04);
-    // blend the arms together
-    float arms = shoulder;
-    arms = smin(arms, elbow, 0.05);
-    arms = smin(arms, hand, 0.05);
-    // blend the legs together
-    float legs = hip;
-    legs = smin(legs, knee, 0.05);
-    legs = smin(legs, foot, 0.1);
-    // blend everything and return the value
-    d = smin(d, arms, 0.1);
-    d = smin(d, legs, 0.05);
-    return d;
-}
-
 // normal function, call de() in a for loop for faster compile times.
 vec3 getNormal(vec3 p) {
     vec4 n = vec4(0);
@@ -626,6 +485,121 @@ void getCamera(in vec2 uv, in int seqID, in float seqTime, out vec3 dir, out vec
     float dist = 0.5 / tan(fov*0.5);
     
     dir = normalize(forward*dist + right*uv.x + upward*uv.y);
+}
+
+// rotate a limb
+vec3 rotateLimb( in vec3 p, in int i ) {
+    vec3 pitchYawRoll = skel[i];
+    p.xz *= rot(pitchYawRoll.y);
+    p.yz *= rot(pitchYawRoll.x);
+    p.xz *= rot(pitchYawRoll.z);
+    return p;
+}
+
+float getTorso( in vec3 p ) {
+    vec3 mainDim = vec3(0.35, 0.15, 0.05);
+    mainDim.x -= cos(p.y*2.0+0.8)*0.19;
+    mainDim.y -= cos(p.x*7.0)*0.05;
+    vec3 inTorso = p - vec3(0, 0.15, 0.05);
+    inTorso.z += s(-0.2, 0.5, inTorso.y)*0.2;
+    float torso = sdBox(inTorso, mainDim) - 0.15;
+    
+    vec3 trapDim = vec3(0.15, 0.13, 0);
+    vec3 inTrap = inTorso - vec3(0.2, 0.33, -0.07);
+    inTrap.xy *= rot(0.4);
+    inTrap.yz *= rot(-0.2);
+    float trap = sdBox(inTrap, trapDim)-0.13;
+    
+    vec3 pecDim = vec3(0.11, 0.08, 0.0);
+    pecDim.y += sin(inTorso.x*7.5)*0.05;
+    vec3 inPec = inTorso - vec3(0.19, 0.2, 0.12);
+    float pec = sdBox(inPec, pecDim) - 0.1;
+    float pecMore = length(inPec)-0.15;
+    pec = smin(pec, pecMore, 0.25);
+    
+    float spine = s(0.13, 0.0, p.x)*s(0.1, -0.3, p.z);
+    
+    float d = torso;
+    d = smin(d, trap, 0.1);
+    d = smin(d, pec, 0.05);
+    d += spine*0.02;
+    return d;
+}
+
+// main distance function
+float de( in vec3 p ) {
+    p.y += 0.5;
+    // main pivot point is upper body
+    vec3 inUpperBody = p;
+    inUpperBody = rotateLimb(inUpperBody, 0);
+    inUpperBody -= vec3(0, 1.3, 0);
+    vec3 inLowerBody = inUpperBody;
+    inLowerBody = rotateLimb(inLowerBody, 1);
+    
+    // keep upper body unflipped for the head
+    vec3 inUpperBodyNoFlip = inUpperBody;
+    // do some flipping
+    int upperOffset = int(inUpperBody.x > 0.0)*3;
+    int lowerOffset = int(inLowerBody.x > 0.0)*3;
+    inUpperBody = vec3(abs(inUpperBody.x), inUpperBody.yz);
+    inLowerBody = vec3(abs(inLowerBody.x), inLowerBody.yz);
+    
+    // do the torso
+    
+    float torso = getTorso(inUpperBody);
+    /*
+    // do the pelvis
+    float pelvis = getPelvis(inLowerBody);
+    
+    // do the neck and head
+    vec3 inNeck = inUpperBodyNoFlip - vec3(0, 0.68, -0.1);
+    inNeck = rotateLimb(inNeck, 2);
+    float neck = getNeck(inNeck);
+    vec3 inHead = inNeck - vec3(0, 0.24, 0.07);
+    inHead = rotateLimb(inHead, 3);
+    float head = getHead(inHead);
+    
+    // do the arms
+    vec3 inShoulder = inUpperBody - vec3(0.4, 0.48, -0.12);
+    inShoulder = rotateArm(inShoulder, 4+upperOffset);
+    float shoulder = getUpperArm(inShoulder);
+    vec3 inElbow = inShoulder - vec3(0.79, 0, 0);
+    inElbow = rotateArm(inElbow, 5+upperOffset);
+    float elbow = getForearm(inElbow);
+    vec3 inHand = inElbow - vec3(0.56, 0, 0);
+    inHand = rotateArm(inHand, 6+upperOffset);
+    float hand = getHand(inHand);
+    
+    // do the legs
+    vec3 inHip = inLowerBody - vec3(0.25, -0.79, 0);
+    inHip = rotateLimb(inHip, 10+lowerOffset);
+    float hip = getUpperLeg(inHip);
+    vec3 inKnee = inHip - vec3(0, -1.01, 0);
+    inKnee = rotateLimb(inKnee, 11+lowerOffset);
+    float knee = getLowerLeg(inKnee);
+    vec3 inFoot = inKnee - vec3(0, -1.06, -0.08);
+    inFoot = rotateLimb(inFoot, 12+lowerOffset);
+    float foot = getFoot(inFoot);
+    
+    // blend the body together
+    float d = torso;
+    d = smin(d, pelvis, 0.2);
+    d = smin(d, neck, 0.15);
+    d = smin(d, head, 0.04);
+    // blend the arms together
+    float arms = shoulder;
+    arms = smin(arms, elbow, 0.05);
+    arms = smin(arms, hand, 0.05);
+    // blend the legs together
+    float legs = hip;
+    legs = smin(legs, knee, 0.05);
+    legs = smin(legs, foot, 0.1);
+    // blend everything and return the value
+    d = smin(d, arms, 0.1);
+    d = smin(d, legs, 0.05);
+    return d;
+    */
+    return 0.5;
 }
 
 void main(void) {

@@ -99,3 +99,21 @@ vec3 sphNormal(vec3 p, vec4 sph) {
 float plaIntersect(vec3 ro, vec3 rd, vec4 p) {
     return -(dot(ro,p.xyz)+p.w)/dot(rd,p.xyz);
 }
+
+// iq distance functions
+float sdBox( in vec3 p, in vec3 b ) {
+	vec3 d = abs(p) - b;
+	return min(max(d.x,max(d.y,d.z)),0.0) + length(max(d,0.0));
+}
+float sdCapsule( in vec3 p, in vec3 a, in vec3 b, in float r ) {
+    vec3 pa = p - a, ba = b - a;
+    float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+    return length( pa - ba*h ) - r;
+}
+float sdEllipsoid( in vec3 p, in vec3 r ) {
+    return (length( p/r ) - 1.0) * min(min(r.x,r.y),r.z);
+}
+float smin( in float a, in float b, in float s ) {
+    float h = clamp( 0.5 + 0.5*(b-a)/s, 0.0, 1.0 );
+    return mix(b, a, h) - h*(1.0-h)*s;
+}
