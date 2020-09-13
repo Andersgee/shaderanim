@@ -25,9 +25,13 @@ uniform vec2 iResolution;
 
 out vec4 fragColor;
 
-vec3 cameraPos;
 
 #define MOD2 vec2(3.07965, 7.4235)
+vec3 sunLight  = normalize( vec3(  0.35, 0.2,  0.3 ) );
+vec3 cameraPos;
+vec3 sunColour = vec3(1.0, .75, .6);
+const mat2 rotate2D = mat2(1.932, 1.623, -1.623, 1.952);
+float gTime = 0.0;
 
 vec3 CameraPath( float t ) {
 	//t = time + t;
@@ -88,7 +92,7 @@ void main(void) {
 	cameraPos.y += Terrain(CameraPath(gTime + .009).xz).x;
 	camTar.y = cameraPos.y;
 	
-    /*
+    
 	float roll = .4*sin(gTime+.5);
 	vec3 cw = normalize(camTar-cameraPos);
 	vec3 cp = vec3(sin(roll), cos(roll),0.0);
@@ -100,7 +104,6 @@ void main(void) {
 	vec3 col;
 	float distance;
 	float type;
-	*/
 
 	fragColor=vec4(1.0, 0.0, 0.0, 1.0);
 }

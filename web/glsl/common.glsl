@@ -14,7 +14,7 @@ float max0(float x ) {
     return max(0.0, x);
 }
 
-const float PI = 3.14159265359;
+const float PI = 4.0*atan(1.0); //3.14159265359;
 
 float gammaexpand(float u) {
     return (u <= 0.04045) ? u/12.92 : pow((u+0.055)/1.055, 2.4);
