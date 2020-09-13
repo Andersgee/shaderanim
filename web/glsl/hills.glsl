@@ -48,12 +48,14 @@ float Hash(vec2 p) {
     return fract(p.x * p.y);
 }
 
-float Noise( in vec2 x ) {
+float Noise(in vec2 x) {
     vec2 p = floor(x);
     vec2 f = fract(x);
     f = f*f*(3.0-2.0*f);
     float n = p.x + p.y*57.0;
-    float res = mix(mix( Hash(n+  0.0), Hash(n+  1.0),f.x), mix( Hash(n+ 57.0), Hash(n+ 58.0),f.x),f.y);
+	float a = mix( Hash(n+0.0), Hash(n+1.0), f.x);
+    float b = mix( Hash(n+57.0), Hash(n+58.0), f.x);
+	float res = mix(a, b, f.y);
     return res;
 }
 
@@ -83,6 +85,15 @@ vec2 groundheight( in vec2 p) {
 	return vec2(f, type);
 }
 
+vec3 groundnormal(vec3 pos) {
+	vec2 p = vec2(0.1, 0.0);
+	vec3 v1 = vec3(0.0, groundheight(pos.xz).x, 0.0);
+	vec3 v2 = v1 - vec3(p.x, groundheight(pos.xz+p).x, 0.0);
+	vec3 v3	= v1 - vec3(0.0, groundheight(pos.xz-p.yx).x, -p.x);
+	vec3 N = normalize(cross(v2, v3));
+	return N;
+}
+
 vec2 Map(in vec3 p) {
 	vec2 h = groundheight(p.xz);
     return vec2(p.y - h.x, h.y);
@@ -91,7 +102,7 @@ vec2 Map(in vec3 p) {
 float BinarySubdivision(in vec3 ro, in vec3 rd, float t, float oldT) {
 	float halfwayT = 0.0;
 	for (int n = 0; n < 5; n++) {
-		halfwayT = (oldT + t ) * .5;
+		halfwayT = 0.5*(oldT + t );
 		if (Map(ro + halfwayT*rd).x < .05) {
 			t = halfwayT;
 		} else {
@@ -101,7 +112,7 @@ float BinarySubdivision(in vec3 ro, in vec3 rd, float t, float oldT) {
 	return t;
 }
 
-bool Scene(in vec3 ro, in vec3 rd, out float resT, out float type ) {
+bool Scene(in vec3 ro, in vec3 rd, out float dist, out float type ) {
     float t = 5.0;
 	float oldT = 0.0;
 	float delta = 0.;
@@ -119,7 +130,7 @@ bool Scene(in vec3 ro, in vec3 rd, out float resT, out float type ) {
 		t += delta;
 	}
     type = h.y;
-    resT = BinarySubdivision(ro, rd, t, oldT);
+    dist = BinarySubdivision(ro, rd, t, oldT);
 	return hit;
 }
 
@@ -199,22 +210,13 @@ vec3 groundcolor(vec3 pos, vec3 rd, vec3 N, float dis, float type) {
 	return mat;
 }
 
-vec3 groundnormal(vec3 pos) {
-	vec2 p = vec2(0.1, 0.0);
-	vec3 v1 = vec3(0.0, groundheight(pos.xz).x, 0.0);
-	vec3 v2 = v1 - vec3(p.x, groundheight(pos.xz+p).x, 0.0);
-	vec3 v3	= v1 - vec3(0.0, groundheight(pos.xz-p.yx).x, -p.x);
-	vec3 N = normalize(cross(v2, v3));
-	return N;
-}
-
 vec3 postprocess(vec3 rgb, vec2 xy) {
 	vec3 srgb = rgb2srgb(rgb);
 	float CONTRAST = 1.1;
 	float SATURATION = 1.3;
 	float BRIGHTNESS = 1.3;
-	srgb = mix(vec3(.5), mix(vec3(dot(vec3(.2125, .7154, .0721), srgb*BRIGHTNESS)), srgb*BRIGHTNESS, SATURATION), CONTRAST);
-	srgb *= .4+0.5*pow(40.0*xy.x*xy.y*(1.0-xy.x)*(1.0-xy.y), 0.2 ); // Vignette
+	srgb = mix(vec3(0.5), mix(vec3(dot(vec3(.2125, .7154, .0721), srgb*BRIGHTNESS)), srgb*BRIGHTNESS, SATURATION), CONTRAST);
+	srgb *= 0.4 + 0.5*pow(40.0*xy.x*xy.y*(1.0-xy.x)*(1.0-xy.y), 0.2 ); // Vignette
 	return srgb;
 }
 
@@ -248,7 +250,7 @@ void main(void) {
     if( !Scene(campos, rd, dist, type) ) {
 		col = skycolor(rd);
 	} else {
-		vec3 pos = campos + dist*rd; // Get world coordinate of landscape
+		vec3 pos = campos + dist*rd;
 		vec3 N = groundnormal(pos);
 		col = groundcolor(pos, rd, N, dist, type);
 	}
@@ -256,9 +258,9 @@ void main(void) {
     // bri is the brightness of sun at the centre of the camera raydirection.
 	float bri = dot(camdir, sunLight)*.75;
     if (bri > 0.0) {
-		vec2 sunPos = vec2( dot( sunLight, camXdir ), dot( sunLight, camYdir ) );
+		vec2 sunPos = vec2(dot(sunLight, camXdir), dot(sunLight, camYdir));
 		vec2 uvT = uv-sunPos;
-		uvT = uvT*(length(uvT));
+		uvT = uvT*length(uvT);
 		bri = 0.8*pow(bri, 6.0);
 
 		float glare1 = max(dot(normalize(vec3(rd.x, rd.y+.3, rd.z)),sunLight),0.0)*1.4; //red shifted blob
