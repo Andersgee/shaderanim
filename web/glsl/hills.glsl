@@ -25,7 +25,7 @@ out vec4 fragColor;
 
 #define MOD2 vec2(3.07965, 7.4235)
 vec3 sunLight  = normalize( vec3(  0.35, 0.2,  0.3 ) );
-vec3 cameraposition;
+vec3 campos;
 vec3 sunColour = vec3(1.0, .75, .6);
 const mat2 rotate2D = mat2(1.932, 1.623, -1.623, 1.952);
 float gTime = 0.0;
@@ -69,7 +69,7 @@ float FractalNoise(in vec2 xy) {
 	return f;
 }
 
-vec2 Terrain( in vec2 p) {
+vec2 groundheight( in vec2 p) {
 	float type = 0.0;
 	vec2 pos = p*0.003;
 	float w = 50.0;
@@ -84,15 +84,15 @@ vec2 Terrain( in vec2 p) {
 }
 
 vec2 Map(in vec3 p) {
-	vec2 h = Terrain(p.xz);
+	vec2 h = groundheight(p.xz);
     return vec2(p.y - h.x, h.y);
 }
 
-float BinarySubdivision(in vec3 rO, in vec3 rD, float t, float oldT) {
+float BinarySubdivision(in vec3 ro, in vec3 rd, float t, float oldT) {
 	float halfwayT = 0.0;
 	for (int n = 0; n < 5; n++) {
 		halfwayT = (oldT + t ) * .5;
-		if (Map(rO + halfwayT*rD).x < .05) {
+		if (Map(ro + halfwayT*rd).x < .05) {
 			t = halfwayT;
 		} else {
 			oldT = halfwayT;
@@ -101,32 +101,29 @@ float BinarySubdivision(in vec3 rO, in vec3 rD, float t, float oldT) {
 	return t;
 }
 
-bool Scene(in vec3 rO, in vec3 rD, out float resT, out float type ) {
-    float t = 5.;
+bool Scene(in vec3 ro, in vec3 rd, out float resT, out float type ) {
+    float t = 5.0;
 	float oldT = 0.0;
 	float delta = 0.;
 	vec2 h = vec2(1.0, 1.0);
 	bool hit = false;
 	for( int j=0; j < 70; j++ ) {
-	    vec3 p = rO + t*rD;
-		h = Map(p); // ...Get this position's height mapping.
-
-		// Are we inside, and close enough to fudge a hit?...
-		if( h.x < 0.05) {
+	    vec3 p = ro + t*rd;
+		h = Map(p);
+		if(h.x < 0.05) {
 			hit = true;
-            break;
+			break;
 		}
-	        
 		delta = h.x + (t*0.03);
 		oldT = t;
 		t += delta;
 	}
     type = h.y;
-    resT = BinarySubdivision(rO, rD, t, oldT);
+    resT = BinarySubdivision(ro, rd, t, oldT);
 	return hit;
 }
 
-vec3 GetSky(in vec3 rd) {
+vec3 skycolor(in vec3 rd) {
 	float sunAmount = max( dot( rd, sunLight), 0.0 );
 	float v = pow(1.0-max(rd.y,0.0),6.);
 	vec3  sky = mix(vec3(.1, .2, .3), vec3(.32, .32, .32), v);
@@ -161,7 +158,7 @@ vec2 Voronoi( in vec2 x ) {
 }
 
 vec3 DE(vec3 p) {
-	float base = Terrain(p.xz).x - 1.9;
+	float base = groundheight(p.xz).x - 1.9;
 	float height = Noise(p.xz*2.0)*.75 + Noise(p.xz)*.35 + Noise(p.xz*.5)*.2;
 	//p.y += height;
 	float y = p.y - base-height;
@@ -171,9 +168,9 @@ vec3 DE(vec3 p) {
 	return vec3( y - f*1.4, clamp01(f * 1.5), ret.y);
 }
 
-vec3 GrassBlades(in vec3 rO, in vec3 rD, in vec3 mat, in float dist) {
+vec3 GrassBlades(in vec3 ro, in vec3 rd, in vec3 mat, in float dist) {
 	float d = 0.0;
-	// Only calcameraXdirlate cCoC once is enough here...
+	// Only calculate cCoC once is enough here...
 	float rCoC = CircleOfConfusion(dist*.3);
 	float alpha = 0.0;
 	
@@ -181,21 +178,23 @@ vec3 GrassBlades(in vec3 rO, in vec3 rD, in vec3 mat, in float dist) {
 
 	for (int i = 0; i < 15; i++) {
 		if (col.w > .99) break;
-		vec3 p = rO + rD * d;
+		vec3 p = ro + rd * d;
 		
 		vec3 ret = DE(p);
 		ret.x += .5 * rCoC;
 
 		if (ret.x < rCoC) {
-			alpha = (1.0 - col.y) * Linstep(-rCoC, rCoC, -ret.x);//calcameraXdirlate the mix like cloud density
+			alpha = (1.0 - col.y) * Linstep(-rCoC, rCoC, -ret.x);//calculate the mix like cloud density
 			// Mix material with white tips for grass...
 			vec3 gra = mix(mat, vec3(.35, .35, min(pow(ret.z, 4.0)*35.0, .35)), pow(ret.y, 9.0)*.7) * ret.y;
 			col += vec4(gra * alpha, alpha);
 		}
 		d += max(ret.x * .7, .1);
 	}
-	if(col.w < .2)
+	if(col.w < .2){
 		col.xyz = vec3(0.1, .15, 0.05);
+	}
+	
 	return col.xyz;
 }
 
@@ -206,10 +205,10 @@ void DoLighting(inout vec3 mat, in vec3 pos, in vec3 normal, in vec3 eyeraydir, 
 
 vec3 ApplyFog( in vec3  rgb, in float dis, in vec3 rd) {
 	float fogAmount = clamp01(dis*dis* 0.0000012);
-	return mix( rgb, GetSky(rd), fogAmount );
+	return mix( rgb, skycolor(rd), fogAmount );
 }
 
-vec3 TerrainColour(vec3 pos, vec3 rd,  vec3 normal, float dis, float type) {
+vec3 groundcolor(vec3 pos, vec3 rd,  vec3 normal, float dis, float type) {
 	vec3 mat;
 	if (type == 0.0) {
 		mat = mix(vec3(.0,.3,.0), vec3(.2,.3,.0), Noise(pos.xz*.025)); // Random colour
@@ -221,18 +220,23 @@ vec3 TerrainColour(vec3 pos, vec3 rd,  vec3 normal, float dis, float type) {
 	return mat;
 }
 
-vec3 PostEffects(vec3 rgb, vec2 xy) {
-	// Gamma first...
-	rgb = pow(rgb, vec3(0.45));
-	
-	// Then...
-	#define CONTRAST 1.1
-	#define SATURATION 1.3
-	#define BRIGHTNESS 1.3
-	rgb = mix(vec3(.5), mix(vec3(dot(vec3(.2125, .7154, .0721), rgb*BRIGHTNESS)), rgb*BRIGHTNESS, SATURATION), CONTRAST);
-	// Vignette...
-	rgb *= .4+0.5*pow(40.0*xy.x*xy.y*(1.0-xy.x)*(1.0-xy.y), 0.2 );	
-	return rgb;
+vec3 groundnormal(vec3 pos) {
+	vec2 p = vec2(0.1, 0.0);
+	vec3 v1 = vec3(0.0, groundheight(pos.xz).x, 0.0);
+	vec3 v2 = v1 - vec3(p.x, groundheight(pos.xz+p).x, 0.0);
+	vec3 v3	= v1 - vec3(0.0, groundheight(pos.xz-p.yx).x, -p.x);
+	vec3 N = normalize(cross(v2, v3));
+	return N;
+}
+
+vec3 postprocess(vec3 rgb, vec2 xy) {
+	vec3 srgb = rgb2srgb(rgb);
+	float CONTRAST = 1.1;
+	float SATURATION = 1.3;
+	float BRIGHTNESS = 1.3;
+	srgb = mix(vec3(.5), mix(vec3(dot(vec3(.2125, .7154, .0721), srgb*BRIGHTNESS)), srgb*BRIGHTNESS, SATURATION), CONTRAST);
+	srgb *= .4+0.5*pow(40.0*xy.x*xy.y*(1.0-xy.x)*(1.0-xy.y), 0.2 ); // Vignette
+	return srgb;
 }
 
 void main(void) {
@@ -242,65 +246,52 @@ void main(void) {
 	float gTime = (iTime*5.0+m+2352.0)*.006;
     vec2 xy = gl_FragCoord.xy / iResolution.xy;
 	vec2 uv = (-1.0 + 2.0 * xy) * vec2(iResolution.x/iResolution.y,1.0);
-	vec3 cameratarget;
+	vec3 camtarget;
 
-    
-	cameraposition = CameraPath(gTime + 0.0);
-    cameraposition.x -= 3.0;
-	cameratarget = CameraPath(gTime + .009);
-	cameraposition.y += Terrain(CameraPath(gTime + .009).xz).x;
-	cameratarget.y = cameraposition.y;
+	campos = CameraPath(gTime + 0.0);
+	camtarget = CameraPath(gTime + .009);
+
+	campos.x -= 3.0;
+	campos.y += groundheight(camtarget.xz).x;
+	camtarget.y = campos.y;
 	
-	vec3 cameradir = normalize(cameratarget-cameraposition);
+	vec3 camdir = normalize(camtarget-campos);
 	vec3 updir = vec3(0.0, 1.0, 0.0);
-	vec3 cameraXdir = cross(cameradir, updir);
-	vec3 cameraYdir = cross(cameraXdir, cameradir);
+	vec3 camXdir = cross(camdir, updir);
+	vec3 camYdir = cross(camXdir, camdir);
 
-	vec3 rd = normalize(uv.x*cameraXdir + uv.y*cameraYdir + 1.3*cameradir);
+	vec3 rd = normalize(uv.x*camXdir + uv.y*camYdir + 1.3*camdir);
 
 	vec3 col;
-	float distance;
+	float dist;
 	float type;
 
-    if( !Scene(cameraposition, rd, distance, type) ) {
-		col = GetSky(rd); // Missed scene, now just get the sky
+    if( !Scene(campos, rd, dist, type) ) {
+		col = skycolor(rd);
 	} else {
-		vec3 pos = cameraposition + distance * rd; // Get world coordinate of landscape
-		// Get normal from sampling the high definition height map
-		// Use the distance to sample larger gaps to help stop aliasing
-		vec2 p = vec2(0.1, 0.0);
-		vec3 nor = vec3(0.0, Terrain(pos.xz).x, 0.0);
-		vec3 v2 = nor-vec3(p.x,	Terrain(pos.xz+p).x, 0.0);
-		vec3 v3	= nor-vec3(0.0,	Terrain(pos.xz-p.yx).x, -p.x);
-		nor = cross(v2, v3);
-		nor = normalize(nor);
-
-		// Get the colour using all available data
-		col = TerrainColour(pos, rd, nor, distance, type);
+		vec3 pos = campos + dist*rd; // Get world coordinate of landscape
+		vec3 N = groundnormal(pos);
+		col = groundcolor(pos, rd, N, dist, type);
 	}
 
     // bri is the brightness of sun at the centre of the camera raydirection.
-	// Yeah, the lens flares is not exactly subtle, but it was good fun making it.
-	float bri = dot(cameradir, sunLight)*.75;
+	float bri = dot(camdir, sunLight)*.75;
     if (bri > 0.0) {
-		vec2 sunPos = vec2( dot( sunLight, cameraXdir ), dot( sunLight, cameraYdir ) );
+		vec2 sunPos = vec2( dot( sunLight, camXdir ), dot( sunLight, camYdir ) );
 		vec2 uvT = uv-sunPos;
 		uvT = uvT*(length(uvT));
-		bri = pow(bri, 6.0)*.8;
+		bri = 0.8*pow(bri, 6.0);
 
-		// glare = the red shifted blob...
-		float glare1 = max(dot(normalize(vec3(rd.x, rd.y+.3, rd.z)),sunLight),0.0)*1.4;
-		// glare2 is the yellow ring...
-		float glare2 = max(1.0-length(uvT+sunPos*.5)*4.0, 0.0);
-		uvT = mix (uvT, uv, -2.3);
-		// glare3 is a purple splodge...
-		float glare3 = max(1.0-length(uvT+sunPos*5.0)*1.2, 0.0);
+		float glare1 = max(dot(normalize(vec3(rd.x, rd.y+.3, rd.z)),sunLight),0.0)*1.4; //red shifted blob
+		float glare2 = max(1.0-length(uvT+sunPos*.5)*4.0, 0.0); //yellow ring
+		uvT = mix(uvT, uv, -2.3);
+		float glare3 = max(1.0-length(uvT+sunPos*5.0)*1.2, 0.0); //purple splodge
 
-		col += bri * vec3(1.0, .0, .0)  * pow(glare1, 12.5)*.05;
+		col += bri * vec3(1.0, .0, .0) * pow(glare1, 12.5)*.05;
 		col += bri * vec3(1.0, 1.0, 0.2) * pow(glare2, 2.0)*2.5;
 		col += bri * sunColour * pow(glare3, 2.0)*3.0;
 	}
-    col = PostEffects(col, xy);	
+    col = postprocess(col, xy);	
 	fragColor=vec4(col, 1.0);
 }
 
