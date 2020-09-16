@@ -171,29 +171,19 @@ vec3 rotateArm(vec3 p, int i ) {
 }
 
 // camera direction and position
-void getCamera(in vec2 uv, out vec3 dir, out vec3 from){
+void raydir(in vec2 uv, out vec3 dir, in vec3 from, in float rota){
     // look at and up vector
     vec3 up = vec3(0.0, 1.0, 0.0);
     vec3 lookAt = vec3(0.0);
-    from = vec3(0.0);
     
     // rotate around our dude
-    up = normalize(vec3(1.0, 10.0, 2.0));
-    lookAt = vec3(0.0);
-    float rota = 0.25*PI;
-    from = vec3(cos(rota), 0.0, sin(rota))*5.0;
-    
-    // send our dude flying
-    from.z -= s(31.7, 37.0, 0.0)*200.0;
-    from.z -= s(30.5, 34.0, 0.0)*5.0;
-    
+    //from = vec3(cos(rota), 0.0, sin(rota))*5.0;
+ 
     vec3 forward = normalize(lookAt - from);
     vec3 right = normalize(cross(forward, up));
     vec3 upward = cross(right, forward);
-    
     float fov = 1.0;
     float dist = 0.5 / tan(fov*0.5);
-    
     dir = normalize(forward*dist + right*uv.x + upward*uv.y);
 }
 
@@ -360,8 +350,9 @@ void main(void) {
     
     // get the direction and position
     vec3 rd = vec3(0);
-    vec3 ro = vec3(0.0);
-    getCamera(uv, rd, ro);
+    float rota = 0.25*PI;
+    vec3 ro = vec3(0.0, 0.0, 5.0);
+    raydir(uv, rd, ro, rota);
 	
     vec3 p = vec3(0.0); // keep best position
     float d = 0.0;
