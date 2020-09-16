@@ -170,22 +170,6 @@ vec3 rotateArm(vec3 p, int i ) {
     return p;
 }
 
-// camera direction and position
-void raydir(in vec2 uv, out vec3 dir, in vec3 from, in float rota){
-    // look at and up vector
-    vec3 up = vec3(0.0, 1.0, 0.0);
-    vec3 lookAt = vec3(0.0);
-    
-    // rotate around our dude
-    //from = vec3(cos(rota), 0.0, sin(rota))*5.0;
- 
-    vec3 forward = normalize(lookAt - from);
-    vec3 right = normalize(cross(forward, up));
-    vec3 upward = cross(right, forward);
-    float fov = 1.0;
-    float dist = 0.5 / tan(fov*0.5);
-    dir = normalize(forward*dist + right*uv.x + upward*uv.y);
-}
 
 // rotate a limb
 vec3 rotateLimb( in vec3 p, in int i ) {
@@ -344,15 +328,24 @@ vec3 getNormal(vec3 p) {
     return normalize(n.xyz-n.w);
 }
 
+vec3 raydir(vec2 uv, vec3 ro, vec3 lookAt){
+    vec3 up = vec3(0.0, 1.0, 0.0);
+    vec3 forward = normalize(lookAt - ro);
+    vec3 right = normalize(cross(forward, up));
+    vec3 upward = cross(right, forward);
+    float fov = 1.0;
+    float dist = 0.5 / tan(fov*0.5);
+    return normalize(forward*dist + right*uv.x + upward*uv.y);
+}
+
 void main(void) {
     vec2 uv = gl_FragCoord.xy-iResolution.xy*0.5; // Normalized pixel coordinates (from 0 to 1)
     uv /= iResolution.y;
     
     // get the direction and position
-    vec3 rd = vec3(0);
-    float rota = 0.25*PI;
     vec3 ro = vec3(0.0, 0.0, 5.0);
-    raydir(uv, rd, ro, rota);
+    vec3 lookAt = vec3(0.0);
+    vec3 rd = raydir(uv, ro, lookAt);
 	
     vec3 p = vec3(0.0); // keep best position
     float d = 0.0;
