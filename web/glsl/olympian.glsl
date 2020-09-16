@@ -25,18 +25,11 @@ out vec4 fragColor;
 
 #define s(a, b, x) smoothstep(a, b, x)
 #define rot(a) mat2(cos(a + PI*0.5*vec4(0,1,3,0)))
-#define Z 0
-
-// simpler, easier version to compile of the dude
-// #define SIMPLE_HUMAN
 
 // hash functions by Dave_Hoskins
 #define HASHSCALE1 .1031
 #define HASHSCALE3 vec3(.1031, .1030, .0973)
 #define HASHSCALE4 vec4(.1031, .1030, .0973, .1099)
-
-// skeleton, represented as pitch/yaw/roll rotations
-//vec3 skel[16];
 
 float getHead( in vec3 p ) {
     vec3 brainDim = vec3(0.2, 0.23, 0.22);
@@ -138,101 +131,6 @@ float getFoot( in vec3 p ) {
     return d;
 }
 
-
-/*
-vec2 hash21( in float p ) {
-	vec3 p3 = fract(vec3(p) * HASHSCALE3);
-	p3 += dot(p3, p3.yzx + 19.19);
-    return fract((p3.xx+p3.yz)*p3.zy);
-}
-
-vec2 hash22( vec2 p ) {
-	vec3 p3 = fract(vec3(p.xyx) * HASHSCALE3);
-    p3 += dot(p3, p3.yzx+19.19);
-    return fract((p3.xx+p3.yz)*p3.zy);
-}
-
-vec2 hash23( in vec3 p3 ) {
-	p3 = fract(p3 * HASHSCALE3);
-    p3 += dot(p3, p3.yzx+19.19);
-    return fract((p3.xx+p3.yz)*p3.zy);
-}
-
-vec3 hash31( in float p ) {
-   vec3 p3 = fract(vec3(p) * HASHSCALE3);
-   p3 += dot(p3, p3.yzx+19.19);
-   return fract((p3.xxy+p3.yzz)*p3.zyx); 
-}
-
-vec3 hash32( in vec2 p ) {
-	vec3 p3 = fract(vec3(p.xyx) * HASHSCALE3);
-    p3 += dot(p3, p3.yxz+19.19);
-    return fract((p3.xxy+p3.yzz)*p3.zyx);
-}
-
-vec3 hash33( in vec3 p3 ) {
-	p3 = fract(p3 * HASHSCALE3);
-    p3 += dot(p3, p3.yxz+19.19);
-    return fract((p3.xxy + p3.yxx)*p3.zyx);
-}
-
-vec4 hash41( in float p ) {
-	vec4 p4 = fract(vec4(p) * HASHSCALE4);
-    p4 += dot(p4, p4.wzxy+19.19);
-    return fract((p4.xxyz+p4.yzzw)*p4.zywx);
-}
-
-vec4 hash42( in vec2 p ) {
-	vec4 p4 = fract(vec4(p.xyxy) * HASHSCALE4);
-    p4 += dot(p4, p4.wzxy+19.19);
-    return fract((p4.xxyz+p4.yzzw)*p4.zywx);
-}
-
-vec4 hash43( in vec3 p ) {
-	vec4 p4 = fract(vec4(p.xyzx)  * HASHSCALE4);
-    p4 += dot(p4, p4.wzxy+19.19);
-    return fract((p4.xxyz+p4.yzzw)*p4.zywx);
-}
-
-vec4 hash44( in vec4 p4 ) {
-	p4 = fract(p4  * HASHSCALE4);
-    p4 += dot(p4, p4.wzxy+19.19);
-    return fract((p4.xxyz+p4.yzzw)*p4.zywx);
-}
-
-// return sequence id and time in this sequence
-void getSequence( in float time, out int seqID, out float seqTime ) {
-    
-    seqID = 0;
-    seqTime = time;
-    
-    if (time < 34.0) {
-        seqID = 0;
-        seqTime = time;
-    } else if (time < 64.0) {
-        seqID = 1;
-        seqTime = time-34.0;
-    } else if (time < 74.0) {
-        seqID = 2;
-        seqTime = time-64.0;
-    } else if (time < 94.0) {
-        seqID = 3;
-        seqTime = time-74.0;
-    } else if (time < 104.0) {
-        seqID = 4;
-        seqTime = time-94.0;
-    } else if (time < 144.0) {
-        seqID = 5;
-        seqTime = time-104.0;
-    } else {
-        seqID = 6;
-        seqTime = time-144.0;
-    }
-
-}
-
-*/
-
 float hash11( in float p ) {
 	vec3 p3 = fract(vec3(p) * HASHSCALE1);
     p3 += dot(p3, p3.yzx + 19.19);
@@ -272,100 +170,6 @@ vec3 rotateArm(vec3 p, int i ) {
     return p;
 }
 
-/*
-// 0  = upper body
-// 1  = lower body
-// 2  = neck
-// 3  = head
-// 4  = right shoulder
-// 5  = right elbow
-// 6  = right hand
-// 7  = left shoulder
-// 8  = left elbow
-// 9  = left hand
-// 10 = right hip
-// 11 = right knee
-// 12 = right foot
-// 13 = left hip
-// 14 = left knee
-// 15 = left foot
-*/
-
-// initialize skeleton
-// skeleton, represented as pitch/yaw/roll rotations
-/*
-void initSkel(in float animframe, in float time) {
-    
-    for (int i = 0 ; i < skel.length() ; i++) {
-        skel[i] = vec3(0.0);
-    }
-    
-    float pTime = time*0.3;
-    float p0 = 0.0; //perlin(pTime, 0.0)*0.2;
-    float p1 = 0.0; //perlin(pTime, 1.0)*0.2;
-    float p2 = 0.0; //perlin(pTime, 2.0)*0.2;
-    float p3 = 0.0; //perlin(pTime, 3.0)*0.2;
-    float p4 = 0.0; //perlin(pTime, 4.0)*0.2;
-    float p5 = 0.0; //perlin(pTime, 5.0)*0.2;
-    float p6 = 0.0; //perlin(pTime, 6.0)*0.2;
-    float p7 = 0.0; //perlin(pTime, 7.0)*0.2;
-        
-    // appear
-    skel[2] = vec3(0.1, 0, 0);
-    skel[3] = vec3(0.2, 0, 0);
-    skel[4] = vec3(0.2, 0, 0);
-    skel[7] = vec3(0.2, 0, 0);
-    skel[10] = vec3(0.3, 0.7, 0);
-    skel[13] = vec3(0.3, 0.7, 0);
-    
-    // float around
-    float f1 = s(8.0, 10.0, animframe);
-    skel[1] = mix(skel[1], vec3(-0.1, 0, 0), f1);
-    skel[2] = mix(skel[2], vec3(0.1, 0, 0), f1);
-    skel[3] = mix(skel[3], vec3(0.1, 0, 0), f1);
-    skel[4] = mix(skel[4], vec3(1.2 + p0, 0, -0.7), f1);
-    skel[5] = mix(skel[5], vec3(0, -0.3 + p1, 0), f1);
-    skel[6] = mix(skel[6], vec3(0, -0.2, 0), f1);
-    skel[7] = mix(skel[7], vec3(1.2 + p2, 0, -0.2), f1);
-    skel[8] = mix(skel[8], vec3(0, -0.5 + p3, 0), f1);
-    skel[9] = mix(skel[9], vec3(0, -0.2, 0), f1);
-    skel[10] = mix(skel[10], vec3(0.8 + p4, 0.2, 0), f1);
-    skel[11] = mix(skel[11], vec3(-0.6 + p5, 0, 0), f1);
-    skel[12] = mix(skel[12], vec3(-0.6, 0, 0), f1);
-    skel[13] = mix(skel[13], vec3(0.7 + p6, 0.2, 0), f1);
-    skel[14] = mix(skel[14], vec3(-0.6 + p7, 0, 0), f1);
-    skel[15] = mix(skel[15], vec3(-0.6, 0, 0), f1);
-    
-    // look at his arms
-    float f2 = s(10.0, 16.0, animframe) - s(15.0, 20.0, animframe);
-    skel[2] = mix(skel[2], vec3(-0.3, 0, 0), f2);
-    skel[3] = mix(skel[3], vec3(-0.4, -0.5, 0), f2);
-    skel[4] = mix(skel[4], vec3(0.8, -0.9, 0), f2);
-    skel[5] = mix(skel[5], vec3(0.0, -1.0, 0), f2);
-    skel[6] = mix(skel[6], vec3(0.0, -0.3, 0), f2);
-    float f3 = s(18.0, 22.0, animframe) - s(26.0, 28.0, animframe);
-    skel[2] = mix(skel[2], vec3(-0.3, 0, 0), f3);
-    skel[3] = mix(skel[3], vec3(-0.4, 0.5, 0), f3);
-    skel[7] = mix(skel[7], vec3(0.8, -0.9, 0), f3);
-    skel[8] = mix(skel[8], vec3(0.0, -1.0, 0), f3);
-    skel[9] = mix(skel[9], vec3(0.0, -0.3, 0), f3);
-    
-    // go into flying
-    float f4 = s(31.5, 34.0, animframe);
-    skel[0] = mix(skel[0], vec3(-1.2, 0, 0), f4);
-    skel[1] = mix(skel[1], vec3(-0.4, 0, 0), f4);
-    skel[2] = mix(skel[2], vec3(0.3, 0, 0), f4);
-    skel[3] = mix(skel[3], vec3(0.4, 0, 0), f4);
-    skel[4] = mix(skel[4], vec3(1.2, 0.3, 0), f4);
-    skel[7] = mix(skel[7], vec3(1.2, 0.3, 0), f4);
-    skel[10] = mix(skel[10], vec3(-0.3, -0.3, 0.3), f4);
-    skel[11] = mix(skel[11], vec3(-0.1, 0, 0), f4);
-    skel[12] = mix(skel[12], vec3(-0.6, 0, 0), f4);
-    skel[13] = mix(skel[13], vec3(-0.2, -0.3, 0.3), f4);
-    skel[14] = mix(skel[14], vec3(-0.2, 0, 0), f4);
-    skel[15] = mix(skel[15], vec3(-0.6, 0, 0), f4);
-}
-*/
 // camera direction and position
 void getCamera(in vec2 uv, out vec3 dir, out vec3 from){
     // look at and up vector
@@ -470,7 +274,7 @@ float getNeck( in vec3 p ) {
 }
 
 // main distance function
-float de( in vec3 p ) {
+float bodydistance( in vec3 p ) {
     p.y += 0.5;
     // main pivot point is upper body
     vec3 inUpperBody = p;
@@ -541,11 +345,11 @@ float de( in vec3 p ) {
 
 // normal function, call de() in a for loop for faster compile times.
 vec3 getNormal(vec3 p) {
-    vec4 n = vec4(0);
-    for (int i = Z ; i < 4 ; i++) {
+    vec4 n = vec4(0.0);
+    for (int i = 0 ; i < 4 ; i++) {
         vec4 s = vec4(p, 0);
         s[i] += 0.001;
-        n[i] = de(s.xyz);
+        n[i] = bodydistance(s.xyz);
     }
     return normalize(n.xyz-n.w);
 }
@@ -562,54 +366,31 @@ void main(void) {
     vec3 dir = vec3(0);
     vec3 from = vec3(0.0);
     getCamera(uv, dir, from);
-    //initSkel(animframe, time); // initialize skeleton
 	
     float fov = 1.0;
     float sinPix = sin(fov/iResolution.y)*2.0; // extent of a pixel, depends on the resolution
-    vec3 bestPos = vec3(0); // keep best position
-    float bestPosDist = 999.9;
+    vec3 pos = vec3(0.0); // keep best position
+    float dist = 0.0;
     float accAlpha = 1.0; // accumulated opacity
     float totdist = 0.0; // raymarch distance
     
-    totdist += de(from)*hash13(vec3(gl_FragCoord.xy, iTime)); //original was iFrame here
-    
-	for (int steps = Z ; steps < 50 ; steps++) { //original was 100 steps
-		vec3 pos = from + totdist * dir;
+	for (int steps = 0 ; steps < 50 ; steps++) { //original was 100 steps
+		pos = from + totdist * dir;
+        dist = bodydistance(pos);
         
-        // bounding sphere optimisation
-        float dist = length(pos) - 4.0;
-        if (dist < 1.0) {
-            dist = de(pos); //get actual distance
-            
-            //and cone trace it
-            float r = totdist*sinPix;
-            float alpha = s(-r, r, dist);
-            accAlpha *= alpha;
-            dist = min(0.2, dist); // since the legs and arms are very susceptible to overstepping, clamp to a maximum value
-        }
-        
-        // keep the closest point to the surface
-        if (dist < bestPosDist) {
-            bestPos = pos;
-            bestPosDist = dist;
-        }
-        
-        // hit a surface, stop and break
 		if (dist < 0.001) {
 			accAlpha = 0.0;
             break;
 		}
-		
-        // continue forward
         totdist += min(999.9, dist*0.9);
 	}
     
-    fragColor.rgb = vec3(0);
+    fragColor.rgb = vec3(0.0);
     fragColor.a = 1.0 - accAlpha;
     
     // no need for the normal if the opacity is 0
     if (fragColor.a > 0.001) {
-        fragColor.rgb = getNormal(bestPos);
+        fragColor.rgb = getNormal(pos);
     }
 }
 
