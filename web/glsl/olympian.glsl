@@ -355,34 +355,27 @@ vec3 getNormal(vec3 p) {
 }
 
 void main(void) {
-    // fetch the playback time
-    float time = iTime;//0.0;//texelFetch(iChannel0, ivec2(0), 0).a;
-    float animframe = 10.0;
-    
     vec2 uv = gl_FragCoord.xy-iResolution.xy*0.5; // Normalized pixel coordinates (from 0 to 1)
     uv /= iResolution.y;
     
     // get the direction and position
-    vec3 dir = vec3(0);
-    vec3 from = vec3(0.0);
-    getCamera(uv, dir, from);
+    vec3 rd = vec3(0);
+    vec3 ro = vec3(0.0);
+    getCamera(uv, rd, ro);
 	
-    float fov = 1.0;
-    float sinPix = sin(fov/iResolution.y)*2.0; // extent of a pixel, depends on the resolution
-    vec3 pos = vec3(0.0); // keep best position
-    float dist = 0.0;
+    vec3 p = vec3(0.0); // keep best position
+    float d = 0.0;
     float accAlpha = 1.0; // accumulated opacity
-    float totdist = 0.0; // raymarch distance
+    float t = 0.0; // raymarch distance
     
-	for (int steps = 0 ; steps < 50 ; steps++) { //original was 100 steps
-		pos = from + totdist * dir;
-        dist = bodydistance(pos);
-        
-		if (dist < 0.001) {
+	for (int steps = 0 ; steps < 50 ; steps++) {
+		p = ro + t * rd;
+        d = bodydistance(p);
+		if (d < 0.001) {
 			accAlpha = 0.0;
             break;
 		}
-        totdist += min(999.9, dist*0.9);
+        t += min(999.9, d*0.9);
 	}
     
     fragColor.rgb = vec3(0.0);
@@ -390,7 +383,7 @@ void main(void) {
     
     // no need for the normal if the opacity is 0
     if (fragColor.a > 0.001) {
-        fragColor.rgb = getNormal(pos);
+        fragColor.rgb = getNormal(p);
     }
 }
 
