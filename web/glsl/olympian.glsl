@@ -19,6 +19,8 @@ in vec2 ssc;
 uniform float iTime;
 uniform vec2 iResolution;
 
+uniform vec3 skel[16];
+
 out vec4 fragColor;
 
 #define s(a, b, x) smoothstep(a, b, x)
@@ -34,7 +36,7 @@ out vec4 fragColor;
 #define HASHSCALE4 vec4(.1031, .1030, .0973, .1099)
 
 // skeleton, represented as pitch/yaw/roll rotations
-vec3 skel[16];
+//vec3 skel[16];
 
 float getHead( in vec3 p ) {
     vec3 brainDim = vec3(0.2, 0.23, 0.22);
@@ -291,20 +293,22 @@ vec3 rotateArm(vec3 p, int i ) {
 
 // initialize skeleton
 // skeleton, represented as pitch/yaw/roll rotations
+/*
 void initSkel(in float animframe, in float time) {
+    
     for (int i = 0 ; i < skel.length() ; i++) {
         skel[i] = vec3(0.0);
     }
     
     float pTime = time*0.3;
-    float p0 = perlin(pTime, 0.0)*0.2;
-    float p1 = perlin(pTime, 1.0)*0.2;
-    float p2 = perlin(pTime, 2.0)*0.2;
-    float p3 = perlin(pTime, 3.0)*0.2;
-    float p4 = perlin(pTime, 4.0)*0.2;
-    float p5 = perlin(pTime, 5.0)*0.2;
-    float p6 = perlin(pTime, 6.0)*0.2;
-    float p7 = perlin(pTime, 7.0)*0.2;
+    float p0 = 0.0; //perlin(pTime, 0.0)*0.2;
+    float p1 = 0.0; //perlin(pTime, 1.0)*0.2;
+    float p2 = 0.0; //perlin(pTime, 2.0)*0.2;
+    float p3 = 0.0; //perlin(pTime, 3.0)*0.2;
+    float p4 = 0.0; //perlin(pTime, 4.0)*0.2;
+    float p5 = 0.0; //perlin(pTime, 5.0)*0.2;
+    float p6 = 0.0; //perlin(pTime, 6.0)*0.2;
+    float p7 = 0.0; //perlin(pTime, 7.0)*0.2;
         
     // appear
     skel[2] = vec3(0.1, 0, 0);
@@ -360,9 +364,8 @@ void initSkel(in float animframe, in float time) {
     skel[13] = mix(skel[13], vec3(-0.2, -0.3, 0.3), f4);
     skel[14] = mix(skel[14], vec3(-0.2, 0, 0), f4);
     skel[15] = mix(skel[15], vec3(-0.6, 0, 0), f4);
-    
 }
-
+*/
 // camera direction and position
 void getCamera(in vec2 uv, out vec3 dir, out vec3 from){
     // look at and up vector
@@ -430,11 +433,6 @@ float getTorso( in vec3 p ) {
 }
 
 float getPelvis( in vec3 p ) {
-    
-    #ifdef SIMPLE_HUMAN
-    return sdBox(p - vec3(0, -0.45, 0.08), vec3(0.13, 0.3, 0))-0.2;
-    #endif
-    
     vec3 mainDim = vec3(0.17, 0.3, 0);
     mainDim.x += sin(p.y*6.0)*0.04;
     vec3 inMain = p - vec3(0, -0.45, 0.07);
@@ -468,7 +466,7 @@ float getPelvis( in vec3 p ) {
 }
 
 float getNeck( in vec3 p ) {
-    return sdCapsule(p, vec3(0), vec3(0, 0.24, 0.07), 0.15);
+    return sdCapsule(p, vec3(0.0), vec3(0, 0.24, 0.07), 0.15);
 }
 
 // main distance function
@@ -564,7 +562,7 @@ void main(void) {
     vec3 dir = vec3(0);
     vec3 from = vec3(0.0);
     getCamera(uv, dir, from);
-    initSkel(animframe, time); // initialize skeleton
+    //initSkel(animframe, time); // initialize skeleton
 	
     float fov = 1.0;
     float sinPix = sin(fov/iResolution.y)*2.0; // extent of a pixel, depends on the resolution
