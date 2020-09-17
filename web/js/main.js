@@ -3,7 +3,8 @@ async function fetchglsl() {
     fetch("../glsl/common.glsl").then((res) => res.text()),
     //fetch("../glsl/earth.glsl").then((res) => res.text()),
     //fetch("../glsl/hills.glsl").then((res) => res.text()),
-    fetch("../glsl/olympian.glsl").then((res) => res.text()),
+    //fetch("../glsl/olympian.glsl").then((res) => res.text()),
+    fetch("../glsl/primitives.glsl").then((res) => res.text()),
   ]);
 }
 

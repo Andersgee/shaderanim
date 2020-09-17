@@ -321,7 +321,7 @@ float bodydistance( in vec3 p ) {
 vec3 getNormal(vec3 p) {
     vec4 n = vec4(0.0);
     for (int i = 0 ; i < 4 ; i++) {
-        vec4 s = vec4(p, 0);
+        vec4 s = vec4(p, 0.0);
         s[i] += 0.001;
         n[i] = bodydistance(s.xyz);
     }
@@ -352,7 +352,7 @@ void main(void) {
     float accAlpha = 1.0; // accumulated opacity
     float t = 0.0; // raymarch distance
     
-	for (int steps = 0 ; steps < 50 ; steps++) {
+	for (int steps = 0 ; steps < 10 ; steps++) {
 		p = ro + t * rd;
         d = bodydistance(p);
 		if (d < 0.001) {
