@@ -70,40 +70,31 @@ vec2 map( in vec3 pos ) {
 
 vec2 raycast( in vec3 ro, in vec3 rd ) {
     vec2 res = vec2(-1.0,-1.0);
-
     float tmin = 1.0;
     float tmax = 20.0;
 
     // raytrace floor plane
     float tp1 = (0.0-ro.y)/rd.y;
-    if( tp1>0.0 )
-    {
+    if( tp1>0.0 ) {
         tmax = min( tmax, tp1 );
         res = vec2( tp1, 1.0 );
     }
-    //else return res;
     
     // raymarch primitives   
     vec2 tb = iBox( ro-vec3(0.0,0.4,-0.5), rd, vec3(2.5,0.41,3.0) );
-    if( tb.x<tb.y && tb.y>0.0 && tb.x<tmax)
-    {
-        //return vec2(tb.x,2.0);
+    if( tb.x<tb.y && tb.y>0.0 && tb.x<tmax) {
         tmin = max(tb.x,tmin);
         tmax = min(tb.y,tmax);
-
         float t = tmin;
-        for( int i=0; i<70 && t<tmax; i++ )
-        {
+        for( int i=0; i<70 && t<tmax; i++ ) {
             vec2 h = map( ro+rd*t );
-            if( abs(h.x)<(0.0001*t) )
-            { 
+            if(abs(h.x)<(0.0001*t)) {
                 res = vec2(t,h.y); 
                 break;
             }
             t += h.x;
         }
     }
-    
     return res;
 }
 
@@ -111,7 +102,6 @@ vec2 raycast( in vec3 ro, in vec3 rd ) {
 float calcSoftshadow( in vec3 ro, in vec3 rd, in float mint, in float tmax ) {
     // bounding volume
     float tp = (0.8-ro.y)/rd.y; if( tp>0.0 ) tmax = min( tmax, tp );
-
     float res = 1.0;
     float t = mint;
     for( int i=0; i<16; i++ ) {
@@ -167,7 +157,7 @@ vec3 render( in vec3 ro, in vec3 rd, in vec3 rdx, in vec3 rdy ) {
         col = 0.2 + 0.2*sin( m*2.0 + vec3(0.0,1.0,2.0) );
         float ks = 1.0;
         
-        if( m<1.5 ) {
+        if (m<1.5) {
             // project pixel footprint into the plane
             vec3 dpdx = ro.y*(rd/rd.y-rdx/rdx.y);
             vec3 dpdy = ro.y*(rd/rd.y-rdy/rdy.y);
@@ -218,10 +208,8 @@ vec3 render( in vec3 ro, in vec3 rd, in vec3 rdx, in vec3 rdy ) {
         }
         
 		col = lin;
-
         col = mix( col, vec3(0.7,0.7,0.9), 1.0-exp( -0.0001*t*t*t ) );
     }
-
 	return vec3( clamp(col,0.0,1.0) );
 }
 
@@ -234,7 +222,7 @@ mat3 setCamera( in vec3 ro, in vec3 ta, float cr ) {
 }
 
 void main(void) {
-    vec2 iMouse = vec2(0.0, 0.0);
+    vec2 iMouse = vec2(sin(iTime)*100.0, 0.0);
     vec2 mo = iMouse.xy/iResolution.xy;
 	float time = 32.0 + iTime*1.5;
 
@@ -256,11 +244,10 @@ void main(void) {
     vec3 rdx = ca * normalize( vec3(px,2.5) );
     vec3 rdy = ca * normalize( vec3(py,2.5) );
     
-    // render	
     vec3 col = render( ro, rd, rdx, rdy );
 
     // gain
-    // col = col*3.0/(2.5+col);
+    //col = col*3.0/(2.5+col);
     
     // gamma
     col = pow( col, vec3(0.4545) );

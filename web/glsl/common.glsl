@@ -101,6 +101,7 @@ float plaIntersect(vec3 ro, vec3 rd, vec4 p) {
 }
 
 // iq distance functions
+//see here for example https://www.shadertoy.com/view/Xds3zN
 float dot2( in vec2 v ) { return dot(v,v); }
 float dot2( in vec3 v ) { return dot(v,v); }
 float ndot( in vec2 a, in vec2 b ) { return a.x*b.x - a.y*b.y; }
