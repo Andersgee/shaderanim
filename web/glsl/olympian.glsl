@@ -26,11 +26,6 @@ out vec4 fragColor;
 #define s(a, b, x) smoothstep(a, b, x)
 #define rot(a) mat2(cos(a + PI*0.5*vec4(0,1,3,0)))
 
-// hash functions by Dave_Hoskins
-#define HASHSCALE1 .1031
-#define HASHSCALE3 vec3(.1031, .1030, .0973)
-#define HASHSCALE4 vec4(.1031, .1030, .0973, .1099)
-
 float getHead( in vec3 p ) {
     vec3 brainDim = vec3(0.2, 0.23, 0.22);
     vec3 inBrain = p - vec3(0, 0.27, 0.0);
@@ -132,19 +127,19 @@ float getFoot( in vec3 p ) {
 }
 
 float hash11( in float p ) {
-	vec3 p3 = fract(vec3(p) * HASHSCALE1);
+	vec3 p3 = fract(vec3(p) * 0.1031);
     p3 += dot(p3, p3.yzx + 19.19);
     return fract((p3.x + p3.y) * p3.z);
 }
 
 float hash12( in vec2 p ) {
-	vec3 p3 = fract(vec3(p.xyx) * HASHSCALE1);
+	vec3 p3 = fract(vec3(p.xyx) * 0.1031);
     p3 += dot(p3, p3.yzx + 19.19);
     return fract((p3.x + p3.y) * p3.z);
 }
 
 float hash13( in vec3 p3 ) {
-	p3  = fract(p3 * HASHSCALE1);
+	p3  = fract(p3 * 0.1031);
     p3 += dot(p3, p3.yzx + 19.19);
     return fract((p3.x + p3.y) * p3.z);
 }
@@ -343,7 +338,7 @@ void main(void) {
     uv /= iResolution.y;
     
     // get the direction and position
-    vec3 ro = vec3(0.0, 0.0, 5.0);
+    vec3 ro = vec3(5.0*sin(0.1*iTime), 0.0, 5.0*cos(0.1*iTime));
     vec3 lookAt = vec3(0.0);
     vec3 rd = raydir(uv, ro, lookAt);
 	
@@ -352,7 +347,7 @@ void main(void) {
     float accAlpha = 1.0; // accumulated opacity
     float t = 0.0; // raymarch distance
     
-	for (int steps = 0 ; steps < 10 ; steps++) {
+	for (int steps = 0 ; steps < 20 ; steps++) {
 		p = ro + t * rd;
         d = bodydistance(p);
 		if (d < 0.001) {
