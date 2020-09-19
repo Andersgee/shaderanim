@@ -1,7 +1,6 @@
 #ifdef VERT
 
 in vec2 clipspace;
-
 out vec2 ssc;
 
 void main() {
@@ -18,9 +17,7 @@ void main() {
 in vec2 ssc;
 uniform float iTime;
 uniform vec2 iResolution;
-
 uniform vec3 skel[16];
-
 out vec4 fragColor;
 
 // rotate an arm
@@ -54,8 +51,8 @@ float bodydistance(vec3 p) {
     // keep upper body unflipped for the head
     vec3 inUpperBodyNoFlip = inUpperBody;
     // do some flipping
-    int upperOffset = int(inUpperBody.x > 0.0)*3;
-    int lowerOffset = int(inLowerBody.x > 0.0)*3;
+    int upperOffset = int(inUpperBody.x > 0.0)*3.0;
+    int lowerOffset = int(inLowerBody.x > 0.0)*3.0;
     inUpperBody = vec3(abs(inUpperBody.x), inUpperBody.yz);
     inLowerBody = vec3(abs(inLowerBody.x), inLowerBody.yz);
     
@@ -63,33 +60,33 @@ float bodydistance(vec3 p) {
     float pelvis = getPelvis(inLowerBody);
     
     // do the neck and head
-    vec3 inNeck = inUpperBodyNoFlip - vec3(0, 0.68, -0.1);
-    inNeck = rotateLimb(inNeck, 2);
+    vec3 inNeck = inUpperBodyNoFlip - vec3(0.0, 0.68, -0.1);
+    inNeck = rotateLimb(inNeck, 2.0);
     float neck = getNeck(inNeck);
-    vec3 inHead = inNeck - vec3(0, 0.24, 0.07);
-    inHead = rotateLimb(inHead, 3);
+    vec3 inHead = inNeck - vec3(0.0, 0.24, 0.07);
+    inHead = rotateLimb(inHead, 3.0);
     
     float head = getHead(inHead);
     // do the arms
     vec3 inShoulder = inUpperBody - vec3(0.4, 0.48, -0.12);
     inShoulder = rotateArm(inShoulder, 4+upperOffset);
     float shoulder = getUpperArm(inShoulder);
-    vec3 inElbow = inShoulder - vec3(0.79, 0, 0);
+    vec3 inElbow = inShoulder - vec3(0.79, 0.0, 0.0);
     inElbow = rotateArm(inElbow, 5+upperOffset);
     float elbow = getForearm(inElbow);
-    vec3 inHand = inElbow - vec3(0.56, 0, 0);
-    inHand = rotateArm(inHand, 6+upperOffset);
+    vec3 inHand = inElbow - vec3(0.56, 0.0, 0.0);
+    inHand = rotateArm(inHand, 6.0+upperOffset);
     float hand = getHand(inHand);
     
     // do the legs
-    vec3 inHip = inLowerBody - vec3(0.25, -0.79, 0);
-    inHip = rotateLimb(inHip, 10+lowerOffset);
+    vec3 inHip = inLowerBody - vec3(0.25, -0.79, 0.0);
+    inHip = rotateLimb(inHip, 10.0+lowerOffset);
     float hip = getUpperLeg(inHip);
-    vec3 inKnee = inHip - vec3(0, -1.01, 0);
-    inKnee = rotateLimb(inKnee, 11+lowerOffset);
+    vec3 inKnee = inHip - vec3(0.0, -1.01, 0.0);
+    inKnee = rotateLimb(inKnee, 11.0+lowerOffset);
     float knee = getLowerLeg(inKnee);
-    vec3 inFoot = inKnee - vec3(0, -1.06, -0.08);
-    inFoot = rotateLimb(inFoot, 12+lowerOffset);
+    vec3 inFoot = inKnee - vec3(0.0, -1.06, -0.08);
+    inFoot = rotateLimb(inFoot, 12.0+lowerOffset);
     float foot = getFoot(inFoot);
     
     // blend the body together
@@ -121,7 +118,7 @@ vec3 getNormal(vec3 p) {
     return normalize(n.xyz-n.w);
 }
 
-void main(void) {
+void main() {
     vec2 uv = gl_FragCoord.xy-iResolution.xy*0.5;
     uv /= iResolution.y;
     
