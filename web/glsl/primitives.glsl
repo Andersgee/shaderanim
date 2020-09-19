@@ -133,6 +133,11 @@ float calcAO( in vec3 pos, in vec3 nor ) {
     return clamp( 1.0 - 3.0*occ, 0.0, 1.0 ) * (0.5+0.5*nor.y);
 }
 
+float checkersTexture( in vec2 p ) {
+    vec2 q = floor(p);
+    return mod( q.x+q.y, 2.0 );
+}
+
 vec3 render( in vec3 ro, in vec3 rd) {
     // background
     vec3 col = vec3(0.7, 0.7, 0.9) - max(rd.y,0.0)*0.3;
@@ -150,10 +155,10 @@ vec3 render( in vec3 ro, in vec3 rd) {
         col = 0.2 + 0.2*sin(2.0*m + vec3(0.0, 1.0, 2.0));
         float ks = 1.0;
         
-        //plane
         if (m<1.5) {
+            float f = checkersTexture(pos.xz);
+            col = 0.15 + f*vec3(0.05);
             ks = 0.4;
-            col = vec3(0.2);
         }
 
         // lighting
