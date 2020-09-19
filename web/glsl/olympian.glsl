@@ -338,7 +338,7 @@ void main(void) {
     uv /= iResolution.y;
     
     // get the direction and position
-    vec3 ro = vec3(5.0*sin(0.1*iTime), 0.0, 5.0*cos(0.1*iTime));
+    vec3 ro = vec3(5.0*sin(0.1*iTime), 5.0, 5.0*cos(0.1*iTime));
     vec3 lookAt = vec3(0.0);
     vec3 rd = raydir(uv, ro, lookAt);
 	
@@ -347,10 +347,10 @@ void main(void) {
     float accAlpha = 1.0; // accumulated opacity
     float t = 0.0; // raymarch distance
     
-	for (int steps = 0 ; steps < 20 ; steps++) {
+	for (int steps = 0 ; steps < 100 ; steps++) {
 		p = ro + t * rd;
         d = bodydistance(p);
-		if (d < 0.001) {
+		if (d < 0.001 || length(ro-p)>100.0) {
 			accAlpha = 0.0;
             break;
 		}

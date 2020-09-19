@@ -12,7 +12,7 @@ function setup() {
   fetchglsl().then((glsl) => main(glsl));
 }
 
-function shaderlayout() {
+function shaderlayout(canvas) {
   let layout = {};
   layout.attributes = {
     clipspace: 2,
@@ -32,7 +32,7 @@ function shaderlayout() {
 
   let uniforms = {
     iTime: 0.0,
-    iResolution: [1280, 640],
+    iResolution: [canvas.width, canvas.height],
     earthday: 0,
     earthnight: 1,
     earthclouds: 2,
@@ -61,8 +61,10 @@ function shaderlayout() {
 
 function main(glsl) {
   let canvas = document.getElementById("canvas");
+  canvas.width = 720;
+  canvas.height = 480;
   let gl = webgl(canvas);
-  let [layout, uniforms, texturefilenames] = shaderlayout();
+  let [layout, uniforms, texturefilenames] = shaderlayout(canvas);
   let basicshader = createprogram(gl, layout, glsl[0], glsl[1]);
   gl.useProgram(basicshader);
   bindtextures(gl, texturefilenames);
