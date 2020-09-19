@@ -133,38 +133,27 @@ float calcAO( in vec3 pos, in vec3 nor ) {
     return clamp( 1.0 - 3.0*occ, 0.0, 1.0 ) * (0.5+0.5*nor.y);
 }
 
-// http://iquilezles.org/www/articles/checkerfiltering/checkerfiltering.htm
-float checkersGradBox( in vec2 p, in vec2 dpdx, in vec2 dpdy ) {
-    vec2 w = abs(dpdx)+abs(dpdy) + 0.001;
-    vec2 i = 2.0*(abs(fract((p-0.5*w)*0.5)-0.5)-abs(fract((p+0.5*w)*0.5)-0.5))/w;
-    return 0.5 - 0.5*i.x*i.y;                  
-}
-
-vec3 render( in vec3 ro, in vec3 rd, in vec3 rdx, in vec3 rdy ) { 
+vec3 render( in vec3 ro, in vec3 rd) {
     // background
     vec3 col = vec3(0.7, 0.7, 0.9) - max(rd.y,0.0)*0.3;
     
     // raycast scene
     vec2 res = raycast(ro,rd);
     float t = res.x;
-	float m = res.y;
+	float m = res.y; //model
     if( m>-0.5 ) {
         vec3 pos = ro + t*rd;
         vec3 nor = (m<1.5) ? vec3(0.0,1.0,0.0) : calcNormal( pos );
         vec3 ref = reflect( rd, nor );
         
         // material        
-        col = 0.2 + 0.2*sin( m*2.0 + vec3(0.0,1.0,2.0) );
+        col = 0.2 + 0.2*sin(2.0*m + vec3(0.0, 1.0, 2.0));
         float ks = 1.0;
         
+        //plane
         if (m<1.5) {
-            // project pixel footprint into the plane
-            vec3 dpdx = ro.y*(rd/rd.y-rdx/rdx.y);
-            vec3 dpdy = ro.y*(rd/rd.y-rdy/rdy.y);
-
-            float f = checkersGradBox( 3.0*pos.xz, 3.0*dpdx.xz, 3.0*dpdy.xz );
-            col = 0.15 + f*vec3(0.05);
             ks = 0.4;
+            col = vec3(0.2);
         }
 
         // lighting
@@ -221,37 +210,33 @@ mat3 setCamera( in vec3 ro, in vec3 ta, float cr ) {
     return mat3( cu, cv, cw );
 }
 
+vec3 raydir(vec2 uv, vec3 ro, vec3 lookAt) {
+    vec3 up = vec3(0.0, 1.0, 0.0);
+    vec3 forward = normalize(lookAt - ro);
+    vec3 right = normalize(cross(forward, up));
+    vec3 upward = cross(right, forward);
+    float fov = 1.0;
+    float dist = 0.5 / tan(fov*0.5);
+    return normalize(forward*dist + right*uv.x + upward*uv.y);
+}
+
 void main(void) {
+    vec2 uv = gl_FragCoord.xy-iResolution.xy*0.5; // Normalized pixel coordinates (from 0 to 1)
+    uv /= iResolution.y;
+
     vec2 iMouse = vec2(sin(iTime)*100.0, 0.0);
     vec2 mo = iMouse.xy/iResolution.xy;
 	float time = 32.0 + iTime*1.5;
 
-    // camera	
-    vec3 ta = vec3( 0.5, -0.5, -0.6 );
-    vec3 ro = ta + vec3( 4.5*cos(0.1*time + 7.0*mo.x), 1.3 + 2.0*mo.y, 4.5*sin(0.1*time + 7.0*mo.x) );
-    // camera-to-world transformation
-    mat3 ca = setCamera( ro, ta, 0.0 );
+    vec3 lookAt = vec3(0.0);
+    vec3 ro = vec3( 4.5*cos(0.1*time + 7.0*mo.x), 1.3 + 2.0*mo.y, 4.5*sin(0.1*time + 7.0*mo.x) );
+    vec3 rd = raydir(uv, ro, lookAt);
 
     vec3 tot = vec3(0.0);
-    vec2 p = (2.0*gl_FragCoord.xy-iResolution.xy)/iResolution.y;
-
-    // ray direction
-    vec3 rd = ca * normalize( vec3(p,2.5) );
-
-    // ray differentials
-    vec2 px = (2.0*(gl_FragCoord.xy+vec2(1.0,0.0))-iResolution.xy)/iResolution.y;
-    vec2 py = (2.0*(gl_FragCoord.xy+vec2(0.0,1.0))-iResolution.xy)/iResolution.y;
-    vec3 rdx = ca * normalize( vec3(px,2.5) );
-    vec3 rdy = ca * normalize( vec3(py,2.5) );
-    
-    vec3 col = render( ro, rd, rdx, rdy );
-
-    // gain
-    //col = col*3.0/(2.5+col);
+    vec3 col = render( ro, rd);
     
     // gamma
     col = pow( col, vec3(0.4545) );
-
     tot += col;
     fragColor = vec4( tot, 1.0 );
 }
