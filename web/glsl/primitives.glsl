@@ -202,16 +202,6 @@ vec3 render( in vec3 ro, in vec3 rd) {
 	return vec3( clamp(col,0.0,1.0) );
 }
 
-vec3 raydir(vec2 uv, vec3 ro, vec3 lookAt) {
-    vec3 up = vec3(0.0, 1.0, 0.0);
-    vec3 forward = normalize(lookAt - ro);
-    vec3 right = normalize(cross(forward, up));
-    vec3 upward = cross(right, forward);
-    float fov = 1.0;
-    float dist = 0.5 / tan(fov*0.5);
-    return normalize(forward*dist + right*uv.x + upward*uv.y);
-}
-
 void main(void) {
     vec2 uv = gl_FragCoord.xy-iResolution.xy*0.5; // Normalized pixel coordinates (from 0 to 1)
     uv /= iResolution.y;

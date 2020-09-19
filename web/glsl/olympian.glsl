@@ -23,141 +23,8 @@ uniform vec3 skel[16];
 
 out vec4 fragColor;
 
-#define s(a, b, x) smoothstep(a, b, x)
-#define rot(a) mat2(cos(a + PI*0.5*vec4(0,1,3,0)))
-
-float getHead( in vec3 p ) {
-    vec3 brainDim = vec3(0.2, 0.23, 0.22);
-    vec3 inBrain = p - vec3(0, 0.27, 0.0);
-    float brain = sdEllipsoid(inBrain, brainDim);
-    
-    vec3 faceDim = vec3(0.04, 0.19, 0.03);
-    faceDim.x += sin(p.y*5.0)*0.05;
-    faceDim.z += cos(p.x*15.0)*0.02;
-    faceDim.z += sin(p.y*6.0)*0.03;
-    vec3 inFace = p - vec3(0, 0.18, 0.11);
-    float face = sdBox(inFace, faceDim) - 0.1;
-    
-    float d = brain;
-    d = smin(d, face, 0.1);
-    return d;
-}
-
-float getUpperArm( in vec3 p ) {
-    vec3 shoulderDim = vec3(0.23, 0.15, 0.18);
-    float shoulder = sdEllipsoid(p - vec3(0.05, 0.05, 0.0), shoulderDim);
-    
-    float muscle1Rad = 0.09;
-    muscle1Rad -= cos(p.x*8.0)*0.02;
-    vec3 muscle1Pos1 = vec3(0.0, 0.05, 0.03);
-    vec3 muscle1Pos2 = vec3(0.74, 0.05, 0.03);
-    float muscle1 = sdCapsule(p, muscle1Pos1, muscle1Pos2, muscle1Rad);
-    
-    float muscle2Rad = 0.09;
-    muscle2Rad += sin(p.x*7.0)*0.02;
-    vec3 muscle2Pos1 = vec3(0.0, -0.04, -0.03);
-    vec3 muscle2Pos2 = vec3(0.78, -0.02, -0.03);
-    float muscle2 = sdCapsule(p, muscle2Pos1, muscle2Pos2, muscle2Rad);
-    
-    float d = shoulder;
-    d = smin(d, muscle1, 0.03);
-    d = smin(d, muscle2, 0.03);
-    return d;
-}
-
-float getForearm( in vec3 p ) {
-    const vec3 handPos = vec3(0.58, 0, 0);
-    float rad = 0.06 + sin(p.x*9.0)*0.01;
-    float muscle1 = sdCapsule(p, vec3(0.06, 0.06, 0.0), handPos+vec3(0, 0.05, 0), rad);
-    float muscle2 = sdCapsule(p, vec3(0.04, -0.02, 0.03), handPos+vec3(0, -0.01, 0), rad);
-    float elbow = length(p)-0.08;
-    float d = muscle1;
-    d = smin(d, muscle2, 0.03);
-    d = smin(d, elbow, 0.05);
-    return d;
-}
-
-float getHand( in vec3 p ) {
-    vec3 handDim = vec3(0.08, 0.07, 0.01);
-    float cu1 = cos(p.y*11.0-0.3);
-	handDim.x += cu1*0.06;
-    handDim.z += cu1*0.03;
-    handDim.z -= sin(p.x*4.0)*0.05;
-    float hand = sdBox(p - vec3(0.25, 0.02, 0.0), handDim) - 0.05;
-    float thumb = sdCapsule(p, vec3(0.1, 0.02, 0.03), vec3(0.15, 0.18, 0.06), 0.04);
-    float d = hand;
-    d = smin(d, thumb, 0.07);
-    return d;
-}
-
-float getUpperLeg( in vec3 p ) {
-    const vec3 kneePos = vec3(0, -1.01, 0);
-    float muscle1Rad = 0.15 - sin(p.y*4.0)*0.03;
-    float muscle1 = sdCapsule(p, vec3(0.03, 0.0, 0.1), kneePos, muscle1Rad);
-    float muscle2 = sdCapsule(p, vec3(-0.12, 0.0, -0.05), kneePos, muscle1Rad);
-    float knee = sdEllipsoid(p - vec3(0, -0.95, 0.03), vec3(0.12, 0.2, 0.12));
-    float d = muscle1;
-    d = smin(d, muscle2, 0.02);
-    d = smin(d, knee, 0.03);
-    
-    return d;
-}
-
-float getLowerLeg( in vec3 p ) {
-    const vec3 footPos = vec3(0, -1.06, -0.08);
-    float muscle1Rad = 0.1 - sin(p.y*4.0)*0.03;
-    float muscle1 = sdCapsule(p, vec3(0.02, 0.0, 0.0), footPos, muscle1Rad);
-    float muscle2Rad = 0.09 - sin(p.y*5.3)*0.05;
-    float muscle2 = sdCapsule(p, vec3(-0.02, 0.04, -0.08), footPos + vec3(0.0, 0.04, -0.02), muscle2Rad);
-    float d = muscle1;
-    d = smin(d, muscle2, 0.02);
-    return d;    
-}
-
-float getFoot( in vec3 p ) {
-    vec3 footDim = vec3(0.04, 0.0, 0.19);
-    footDim.x -= cos(p.z*13.0-0.4)*0.04;
-    footDim.z += cos(p.x*14.0+0.2)*0.05;
-    vec3 inFoot = p - vec3(0.03, -0.13, 0.19);
-    float foot = sdBox(inFoot, footDim)-0.05;
-    float ankle = sdEllipsoid(inFoot - vec3(0.0, 0.07, -0.13), vec3(0.1, 0.08, 0.18));
-    float d = foot;
-    d = smin(d, ankle, 0.1);
-    return d;
-}
-
-float hash11( in float p ) {
-	vec3 p3 = fract(vec3(p) * 0.1031);
-    p3 += dot(p3, p3.yzx + 19.19);
-    return fract((p3.x + p3.y) * p3.z);
-}
-
-float hash12( in vec2 p ) {
-	vec3 p3 = fract(vec3(p.xyx) * 0.1031);
-    p3 += dot(p3, p3.yzx + 19.19);
-    return fract((p3.x + p3.y) * p3.z);
-}
-
-float hash13( in vec3 p3 ) {
-	p3  = fract(p3 * 0.1031);
-    p3 += dot(p3, p3.yzx + 19.19);
-    return fract((p3.x + p3.y) * p3.z);
-}
-
-// 1D perlin, between -1 and 1
-float perlin( in float x, in float seed ) {
-    x += hash11(seed);
-    float a = floor(x);
-    float b = a + 1.0;
-    float f = fract(x);
-    a = hash12(vec2(seed, a));
-    b = hash12(vec2(seed, b));
-    f = f*f*(3.0-2.0*f);
-    return mix(a, b, f)*2.0-1.0;
-}
-
 // rotate an arm
-vec3 rotateArm(vec3 p, int i ) {
+vec3 rotateArm(vec3 p, int i) {
     vec3 pitchYawRoll = skel[i];
     p.xz *= rot(pitchYawRoll.y);
     p.xy *= rot(pitchYawRoll.x);
@@ -165,9 +32,8 @@ vec3 rotateArm(vec3 p, int i ) {
     return p;
 }
 
-
 // rotate a limb
-vec3 rotateLimb( in vec3 p, in int i ) {
+vec3 rotateLimb(vec3 p, int i) {
     vec3 pitchYawRoll = skel[i];
     p.xz *= rot(pitchYawRoll.y);
     p.yz *= rot(pitchYawRoll.x);
@@ -175,75 +41,8 @@ vec3 rotateLimb( in vec3 p, in int i ) {
     return p;
 }
 
-float getTorso( in vec3 p ) {
-    vec3 mainDim = vec3(0.35, 0.15, 0.05);
-    mainDim.x -= cos(p.y*2.0+0.8)*0.19;
-    mainDim.y -= cos(p.x*7.0)*0.05;
-    vec3 inTorso = p - vec3(0, 0.15, 0.05);
-    inTorso.z += s(-0.2, 0.5, inTorso.y)*0.2;
-    float torso = sdBox(inTorso, mainDim) - 0.15;
-    
-    vec3 trapDim = vec3(0.15, 0.13, 0);
-    vec3 inTrap = inTorso - vec3(0.2, 0.33, -0.07);
-    inTrap.xy *= rot(0.4);
-    inTrap.yz *= rot(-0.2);
-    float trap = sdBox(inTrap, trapDim)-0.13;
-    
-    vec3 pecDim = vec3(0.11, 0.08, 0.0);
-    pecDim.y += sin(inTorso.x*7.5)*0.05;
-    vec3 inPec = inTorso - vec3(0.19, 0.2, 0.12);
-    float pec = sdBox(inPec, pecDim) - 0.1;
-    float pecMore = length(inPec)-0.15;
-    pec = smin(pec, pecMore, 0.25);
-    
-    float spine = s(0.13, 0.0, p.x)*s(0.1, -0.3, p.z);
-    
-    float d = torso;
-    d = smin(d, trap, 0.1);
-    d = smin(d, pec, 0.05);
-    d += spine*0.02;
-    return d;
-}
-
-float getPelvis( in vec3 p ) {
-    vec3 mainDim = vec3(0.17, 0.3, 0);
-    mainDim.x += sin(p.y*6.0)*0.04;
-    vec3 inMain = p - vec3(0, -0.45, 0.07);
-    inMain.z -= cos(inMain.y*6.0)*0.02;
-    
-    float main = sdBox(inMain, mainDim) - 0.2;
-    
-    vec3 absDim = vec3(0.13, 0.29, 0.0);
-    absDim.z -= cos(p.x*30.0)*0.007;
-    absDim.z -= cos(p.y*36.0)*0.007;
-    vec3 inAbs = inMain - vec3(0, 0.1, 0.13);
-    float absD = sdBox(inAbs, absDim)-0.1;
-    
-    vec3 penisDim = vec3(0.03, 0.05, 0.05);
-    penisDim.x -= sin(p.y*10.0)*0.03;
-    vec3 inPenis = p - vec3(0, -0.9, 0.13);
-    inPenis.z += inPenis.y*0.2;
-    float penis = sdBox(inPenis, penisDim)-0.12;
-    
-    float butt = sdEllipsoid(p - vec3(0.17, -0.75, -0.03),
-                             vec3(0.2, 0.28, 0.2));
-    
-    float spine = s(0.1, 0.0, p.x)*s(0.1, -0.1, p.z);
-    
-    float d = main;
-    d = smin(d, absD, 0.1);
-    d = smin(d, penis, 0.1);
-    d = smin(d, butt, 0.1);
-    d += spine*0.02;
-    return d;
-}
-
-float getNeck( in vec3 p ) {
-    return sdCapsule(p, vec3(0.0), vec3(0, 0.24, 0.07), 0.15);
-}
-
 // main distance function
-float bodydistance( in vec3 p ) {
+float bodydistance(vec3 p) {
     p.y += 0.5;
     // main pivot point is upper body
     vec3 inUpperBody = p;
@@ -312,7 +111,6 @@ float bodydistance( in vec3 p ) {
     return d;
 }
 
-// normal function, call de() in a for loop for faster compile times.
 vec3 getNormal(vec3 p) {
     vec4 n = vec4(0.0);
     for (int i = 0 ; i < 4 ; i++) {
@@ -323,30 +121,18 @@ vec3 getNormal(vec3 p) {
     return normalize(n.xyz-n.w);
 }
 
-vec3 raydir(vec2 uv, vec3 ro, vec3 lookAt){
-    vec3 up = vec3(0.0, 1.0, 0.0);
-    vec3 forward = normalize(lookAt - ro);
-    vec3 right = normalize(cross(forward, up));
-    vec3 upward = cross(right, forward);
-    float fov = 1.0;
-    float dist = 0.5 / tan(fov*0.5);
-    return normalize(forward*dist + right*uv.x + upward*uv.y);
-}
-
 void main(void) {
-    vec2 uv = gl_FragCoord.xy-iResolution.xy*0.5; // Normalized pixel coordinates (from 0 to 1)
+    vec2 uv = gl_FragCoord.xy-iResolution.xy*0.5;
     uv /= iResolution.y;
     
-    // get the direction and position
-    vec3 ro = vec3(5.0*sin(0.1*iTime), 5.0, 5.0*cos(0.1*iTime));
+    vec3 ro = vec3(5.0*sin(0.5*iTime), 5.0, 5.0*cos(0.5*iTime));
     vec3 lookAt = vec3(0.0);
     vec3 rd = raydir(uv, ro, lookAt);
-	
-    vec3 p = vec3(0.0); // keep best position
-    float d = 0.0;
-    float accAlpha = 1.0; // accumulated opacity
-    float t = 0.0; // raymarch distance
     
+    vec3 p = vec3(0.0);
+    float d = 0.0;
+    float t = 0.0;
+
 	for (int steps = 0 ; steps < 100 ; steps++) {
 		p = ro + t * rd;
         d = bodydistance(p);
