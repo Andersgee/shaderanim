@@ -202,14 +202,6 @@ vec3 render( in vec3 ro, in vec3 rd) {
 	return vec3( clamp(col,0.0,1.0) );
 }
 
-mat3 setCamera( in vec3 ro, in vec3 ta, float cr ) {
-	vec3 cw = normalize(ta-ro);
-	vec3 cp = vec3(sin(cr), cos(cr),0.0);
-	vec3 cu = normalize( cross(cw,cp) );
-	vec3 cv =          ( cross(cu,cw) );
-    return mat3( cu, cv, cw );
-}
-
 vec3 raydir(vec2 uv, vec3 ro, vec3 lookAt) {
     vec3 up = vec3(0.0, 1.0, 0.0);
     vec3 forward = normalize(lookAt - ro);
@@ -224,12 +216,8 @@ void main(void) {
     vec2 uv = gl_FragCoord.xy-iResolution.xy*0.5; // Normalized pixel coordinates (from 0 to 1)
     uv /= iResolution.y;
 
-    vec2 iMouse = vec2(sin(iTime)*100.0, 0.0);
-    vec2 mo = iMouse.xy/iResolution.xy;
-	float time = 32.0 + iTime*1.5;
-
     vec3 lookAt = vec3(0.0);
-    vec3 ro = vec3( 4.5*cos(0.1*time + 7.0*mo.x), 1.3 + 2.0*mo.y, 4.5*sin(0.1*time + 7.0*mo.x) );
+    vec3 ro = vec3(3.0*cos(0.1*iTime), 1.0, 3.0*sin(0.1*iTime));
     vec3 rd = raydir(uv, ro, lookAt);
 
     vec3 tot = vec3(0.0);
