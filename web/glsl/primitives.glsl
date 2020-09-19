@@ -164,14 +164,15 @@ vec2 raycast( in vec3 ro, in vec3 rd ) {
     float tmax = 20.0;
 
     // raytrace floor plane
-    float tp1 = (0.0-ro.y)/rd.y;
+    float planeY = -3.0;
+    float tp1 = (planeY-ro.y)/rd.y;
     if( tp1>0.0 ) {
         tmax = min( tmax, tp1 );
         res = vec2( tp1, 1.0 );
     }
     
-    // raymarch primitives   
-    vec2 tb = iBox( ro-vec3(0.0,0.4,-0.5), rd, vec3(2.5,0.41,3.0) );
+    // raymarch primitives
+    vec2 tb = iBox( ro, rd, vec3(2.5, 4.0, 3.0) );
     if( tb.x<tb.y && tb.y>0.0 && tb.x<tmax) {
         tmin = max(tb.x,tmin);
         tmax = min(tb.y,tmax);
