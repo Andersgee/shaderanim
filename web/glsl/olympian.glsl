@@ -350,20 +350,17 @@ void main(void) {
 	for (int steps = 0 ; steps < 100 ; steps++) {
 		p = ro + t * rd;
         d = bodydistance(p);
-		if (d < 0.001 || length(ro-p)>100.0) {
-			accAlpha = 0.0;
+		if (d < 0.001) {
+            fragColor.rgb = getNormal(p);
+            fragColor.a = 1.0;
             break;
-		}
+		} else if (p.y<-3.0) {
+            fragColor.rgb = vec3(0.0);
+            fragColor.a = 1.0;
+            break;
+        }
         t += min(999.9, d*0.9);
 	}
-    
-    fragColor.rgb = vec3(0.0);
-    fragColor.a = 1.0 - accAlpha;
-    
-    // no need for the normal if the opacity is 0
-    if (fragColor.a > 0.001) {
-        fragColor.rgb = getNormal(p);
-    }
 }
 
 #endif
