@@ -32,12 +32,19 @@ vec3 rotateArm(vec3 p, int i) {
     return p;
 }
 
-// rotate an arm
 vec3 rotateNeck(vec3 p, int i) {
     vec3 pitchYawRoll = skel[i];
     p.xz *= rot(pitchYawRoll.z);
     p.xy *= rot(pitchYawRoll.y);
     p.yz *= rot(pitchYawRoll.x);
+    return p;
+}
+
+vec3 rotateHand(vec3 p, int i) {
+    vec3 pitchYawRoll = skel[i];
+    p.xz *= rot(pitchYawRoll.x);
+    p.xy *= rot(pitchYawRoll.y);
+    p.yz *= rot(pitchYawRoll.z);
     return p;
 }
 
@@ -89,7 +96,7 @@ float bodydistance(vec3 p) {
     inElbow = rotateArm(inElbow, 5+upperOffset);
     float elbow = getForearm(inElbow);
     vec3 inHand = inElbow - vec3(0.56, 0.0, 0.0);
-    inHand = rotateArm(inHand, 6+upperOffset);
+    inHand = rotateHand(inHand, 6+upperOffset);
     float hand = getHand(inHand);
     
     // do the legs

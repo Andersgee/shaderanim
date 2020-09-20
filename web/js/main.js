@@ -98,26 +98,32 @@ function main(glsl) {
   function animate(timestamp) {
     uniforms.iTime = (timestamp - animstart) / 1000;
     let t = 0.5 * uniforms.iTime;
+    //let flex = sin(t)
+    let flex = -1.0;
+    let bend = 0.0;
+    let rot = 0.0;
+
     //Ranges of motions
-    neck[0] = neck0[0] + neck0[1] * sin(t);
-    neck[1] = neck1[0] + neck1[1] * sin(t);
+    neck[0] = neck0[0] + neck0[1] * flex;
+    neck[1] = neck1[0] + neck1[1] * bend;
 
-    head[0] = head0[0] + head0[1] * sin(t);
-    head[2] = head2[0] + head2[1] * sin(t);
+    head[0] = head0[0] + head0[1] * flex;
+    head[2] = head2[0] + head2[1] * rot;
 
-    lowerbody[0] = body[0] + body[1] * sin(t);
-    lefthip[0] = hip[0] + hip[1] * sin(t);
-    leftknee[0] = knee[0] + knee[1] * sin(t);
-    leftfoot[0] = foot[0] + foot[1] * sin(t);
+    lowerbody[0] = body[0] + body[1] * flex;
+    lefthip[0] = hip[0] + hip[1] * flex;
+    leftknee[0] = knee[0] + knee[1] * flex;
+    leftfoot[0] = foot[0] + foot[1] * flex;
 
-    leftshoulder[0] = shoulder[0] + shoulder[1] * sin(t);
-    leftelbow[0] = elbow[0] + elbow[1] * sin(t);
-    lefthand[0] = hand[0] + hand[1] * sin(t);
+    leftshoulder[0] = shoulder[0] + shoulder[1] * flex;
+    leftelbow[0] = elbow[0] + elbow[1] * flex;
+    lefthand[0] = hand[0] + hand[1] * 1;
 
-    rightshoulder[1] = shoulder1[0] + shoulder1[1] * sin(t);
-    righthand[1] = hand1[0] + hand1[1] * sin(t);
-    rightshoulder[2] = shoulder2[0] + shoulder2[1] * sin(t);
-    rightelbow[2] = elbow2[0] + elbow2[1] * sin(t);
+    rightshoulder[1] = shoulder1[0] + shoulder1[1] * bend;
+    righthand[1] = hand1[0] + hand1[1] * bend;
+    rightshoulder[2] = shoulder2[0] + shoulder2[1] * bend;
+
+    rightelbow[2] = elbow2[0] + elbow2[1] * rot;
 
     draw(gl, basicshader, uniforms);
     animframe = requestAnimationFrame(animate);
@@ -126,22 +132,25 @@ function main(glsl) {
 
 //Ranges of motion: [center, rad]
 //PITCH
-const head0 = [0.0, 0.5];
-const neck0 = [0.0, 0.5];
+//aka FLEX/EXTEND direction
+const head0 = [0.0, -0.5];
+const neck0 = [0.0, -0.5];
 const body = [0.0, 0.7853981633974483];
 const hip = [0.4363323129985824, 0.9599310885968813];
-const knee = [-1.0908307824964558, 1.2653637076958888];
-const foot = [-0.2617993877991494, 0.6108652381980153];
-const shoulder = [0.0, 1.5];
-const elbow = [-1.2217304763960306, 1.3962634015954636];
-const hand = [0.08726646259971647, 0.4363323129985824];
+const knee = [-1.0908307824964558, -1.2653637076958888];
+const foot = [-0.2617993877991494, -0.6108652381980153];
+const shoulder = [0.0, -1.5];
+const elbow = [-1.2217304763960306, -1.3962634015954636];
+const hand = [0.08726646259971647, -0.4363323129985824];
 
 //YAW
+//aka lateral bend direction
 const neck1 = [0.0, 0.5];
 const shoulder1 = [-0.6981317007977318, 1.0];
 const hand1 = [0.08726646259971647, 1.3089969389957472];
 
 //ROLL
+//aka rotate direction
 const head2 = [0.0, 1.0471975511965976];
 const shoulder2 = [0.0, 1.3962634015954636];
 const elbow2 = [0.0, 1.3962634015954636];
