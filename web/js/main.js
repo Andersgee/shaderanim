@@ -41,7 +41,7 @@ function shaderlayout(canvas) {
     earthwater: 4,
     earthbump: 5,
     skel: new Float32Array(16 * 3).fill(0.0),
-    bodyroot: [0, 1, 0],
+    bodyroot: [0, 1.8, 0],
   };
   /*
   uniforms.skel[0 * 3 + 0] = 0.25;
@@ -82,9 +82,11 @@ function main(glsl) {
   let neck = new Float32Array(uniforms.skel.buffer, 2 * L, 3);
   let head = new Float32Array(uniforms.skel.buffer, 3 * L, 3);
   let rightshoulder = new Float32Array(uniforms.skel.buffer, 4 * L, 3);
+  let leftshoulder = new Float32Array(uniforms.skel.buffer, 7 * L, 3);
   let leftelbow = new Float32Array(uniforms.skel.buffer, 8 * L, 3);
   let lefthand = new Float32Array(uniforms.skel.buffer, 9 * L, 3);
   let righthip = new Float32Array(uniforms.skel.buffer, 10 * L, 3);
+  let lefthip = new Float32Array(uniforms.skel.buffer, 13 * L, 3);
   let leftknee = new Float32Array(uniforms.skel.buffer, 14 * L, 3);
   let leftfoot = new Float32Array(uniforms.skel.buffer, 15 * L, 3);
 
@@ -95,13 +97,13 @@ function main(glsl) {
     let t = 0.5 * uniforms.iTime;
     //Ranges of motions
     lowerbody[0] = 0.7853981633974483 * sin(t);
-    righthip[0] = 0.4363323129985824 + 0.9599310885968813 * sin(t);
+    lefthip[0] = 0.4363323129985824 + 0.9599310885968813 * sin(t);
     leftknee[0] = -1.0908307824964558 + 1.2653637076958888 * sin(t);
     leftfoot[0] = -0.2617993877991494 + 0.6108652381980153 * sin(t);
     neck[0] = 0.0 + 0.75 * sin(t);
     head[0] = 0.0 + 0.5 * sin(t);
     //rightshoulder[0] = 0.9162978572970231 + 2.2252947962927703 * sin(t);
-    rightshoulder[0] = 0.0 + 1.5 * sin(t);
+    leftshoulder[0] = 0.0 + 1.5 * sin(t);
     leftelbow[0] = -1.2217304763960306 + 1.3962634015954636 * sin(t);
     lefthand[0] = 0.08726646259971647 + 0.4363323129985824 * sin(t);
 

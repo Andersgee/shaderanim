@@ -299,7 +299,7 @@ vec3 render( in vec3 ro, in vec3 rd) {
 	return vec3( clamp(col,0.0,1.0) );
 }
 
-void main(void) {
+void main() {
     vec2 uv = gl_FragCoord.xy-iResolution.xy*0.5; // Normalized pixel coordinates (from 0 to 1)
     uv /= iResolution.y;
 
