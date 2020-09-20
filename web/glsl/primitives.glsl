@@ -43,9 +43,9 @@ vec3 rotateLimb(vec3 p, int i) {
 
 // main distance function
 float bodydistance(vec3 p) {
-    
     //p.y += 0.5;
     p -= bodyroot;
+
     // main pivot point is upper body
     vec3 inUpperBody = p;
     inUpperBody = rotateLimb(inUpperBody, 0);
@@ -156,14 +156,13 @@ vec2 map( in vec3 pos ) {
     res = opU( res, vec2( sdRoundCone(   pos-vec3( 2.0,0.20, 1.0), 0.2, 0.1, 0.3 ), 37.0 ) );
     }
 */
-    res = opU(res, vec2(bodydistance(pos-bodyroot), 10.0));
+    res = opU(res, vec2(bodydistance(pos), 10.5));
     
     return res;
 }
 
 vec2 raycast( in vec3 ro, in vec3 rd ) {
-    vec2 res = vec2(-1.0,-1.0);
-    float tmin = 1.0;
+    vec2 res = vec2(-1.0, -1.0);
     float tmax = 20.0;
 
     //floor
@@ -173,16 +172,19 @@ vec2 raycast( in vec3 ro, in vec3 rd ) {
         res = vec2( tp1, 1.0 );
     }
     
-    // raymarch primitives
-    float t = iSphere(ro, rd, bodyroot, 4.0);
+    vec2 sph = iSphere(ro, rd, bodyroot, 3.5); //only raymarch within this sphere
+    float t = sph.x; //min
+    tmax = min(tmax,sph.y); //max
+
     if(t>0.0) {
-        for( int i=0; i<70 && t<tmax; i++ ) {
+        for( int i=0; i<80 && t<tmax; i++ ) {
             vec2 h = map(ro + rd*t);
+            h.x = min(0.2, h.x); //limit stepsize cuz overstepping.
             if(abs(h.x)<(0.0001*t)) {
-                res = vec2(t,h.y); 
+                res = vec2(t,h.y);
                 break;
             }
-            t += h.x;
+            t += 0.9*h.x;
         }
     }
     return res;
@@ -301,18 +303,14 @@ void main(void) {
     vec2 uv = gl_FragCoord.xy-iResolution.xy*0.5; // Normalized pixel coordinates (from 0 to 1)
     uv /= iResolution.y;
 
-    vec3 lookAt = vec3(0.0);
-    vec3 ro = vec3(6.0*cos(0.1*iTime), 2.0, 6.0*sin(0.1*iTime));
+    vec3 lookAt = vec3(bodyroot);
+    vec3 ro = vec3(6.0*cos(0.1*iTime), 4.0, 6.0*sin(0.1*iTime));
     //vec3 ro = vec3(6.0, 2.0, 0.0);
     vec3 rd = raydir(uv, ro, lookAt);
-
-    vec3 tot = vec3(0.0);
     vec3 col = render( ro, rd);
     
-    // gamma
-    col = pow( col, vec3(0.4545) );
-    tot += col;
-    fragColor = vec4( tot, 1.0 );
+    col = pow( col, vec3(0.4545) ); //gamma
+    fragColor = vec4( col, 1.0 );
 }
 
 #endif
