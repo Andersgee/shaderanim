@@ -81,6 +81,9 @@ function main(glsl) {
   let lowerbody = new Float32Array(uniforms.skel.buffer, 1 * L, 3);
   let neck = new Float32Array(uniforms.skel.buffer, 2 * L, 3);
   let head = new Float32Array(uniforms.skel.buffer, 3 * L, 3);
+  let rightshoulder = new Float32Array(uniforms.skel.buffer, 4 * L, 3);
+  let leftelbow = new Float32Array(uniforms.skel.buffer, 8 * L, 3);
+  let lefthand = new Float32Array(uniforms.skel.buffer, 9 * L, 3);
   let righthip = new Float32Array(uniforms.skel.buffer, 10 * L, 3);
   let leftknee = new Float32Array(uniforms.skel.buffer, 14 * L, 3);
   let leftfoot = new Float32Array(uniforms.skel.buffer, 15 * L, 3);
@@ -97,6 +100,11 @@ function main(glsl) {
     leftfoot[0] = -0.2617993877991494 + 0.6108652381980153 * sin(t);
     neck[0] = 0.0 + 0.75 * sin(t);
     head[0] = 0.0 + 0.5 * sin(t);
+    //rightshoulder[0] = 0.9162978572970231 + 2.2252947962927703 * sin(t);
+    rightshoulder[0] = 0.0 + 1.5 * sin(t);
+    leftelbow[0] = -1.2217304763960306 + 1.3962634015954636 * sin(t);
+    lefthand[0] = 0.08726646259971647 + 0.4363323129985824 * sin(t);
+
     draw(gl, basicshader, uniforms);
     animframe = requestAnimationFrame(animate);
   }
