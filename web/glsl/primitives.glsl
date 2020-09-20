@@ -32,6 +32,15 @@ vec3 rotateArm(vec3 p, int i) {
     return p;
 }
 
+// rotate an arm
+vec3 rotateNeck(vec3 p, int i) {
+    vec3 pitchYawRoll = skel[i];
+    p.xz *= rot(pitchYawRoll.z);
+    p.xy *= rot(pitchYawRoll.y);
+    p.yz *= rot(pitchYawRoll.x);
+    return p;
+}
+
 // rotate a limb
 vec3 rotateLimb(vec3 p, int i) {
     vec3 pitchYawRoll = skel[i];
@@ -66,7 +75,7 @@ float bodydistance(vec3 p) {
     
     // do the neck and head
     vec3 inNeck = inUpperBodyNoFlip - vec3(0.0, 0.68, -0.1);
-    inNeck = rotateLimb(inNeck, 2);
+    inNeck = rotateNeck(inNeck, 2);
     float neck = getNeck(inNeck);
     vec3 inHead = inNeck - vec3(0.0, 0.24, 0.07);
     inHead = rotateLimb(inHead, 3);
@@ -172,7 +181,7 @@ vec2 raycast( in vec3 ro, in vec3 rd ) {
         res = vec2( tp1, 1.0 );
     }
     
-    vec2 bound = iSphere(ro, rd, bodyroot, 3.5); //only raymarch within this sphere
+    vec2 bound = iSphere(ro, rd, bodyroot, 4.0); //only raymarch within this sphere
     float t = bound.x; //min
     tmax = min(tmax, bound.y); //max
 
