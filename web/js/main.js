@@ -41,7 +41,7 @@ function shaderlayout(canvas) {
     earthwater: 4,
     earthbump: 5,
     skel: new Float32Array(16 * 3).fill(0.0),
-    bodyroot: [0, 0, 0],
+    bodyroot: [0, 1, 0],
   };
   /*
   uniforms.skel[0 * 3 + 0] = 0.25;

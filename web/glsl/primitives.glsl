@@ -119,10 +119,11 @@ vec2 opU( vec2 d1, vec2 d2 ) {
 
 vec2 map( in vec3 pos ) {
     vec2 res = vec2( 1e10, 0.0 );
+    
     {
       res = opU( res, vec2( sdSphere(    pos-vec3(-2.0,0.25, 0.0), 0.25 ), 26.9 ) );
     }
-    
+    /*
     {
 	res = opU( res, vec2( sdPyramid(    pos-vec3(-1.0,-0.6,-3.0), 1.0 ), 13.56 ) );
 	res = opU( res, vec2( sdOctahedron( pos-vec3(-1.0,0.15,-2.0), 0.35 ), 23.56 ) );
@@ -130,7 +131,7 @@ vec2 map( in vec3 pos ) {
     res = opU( res, vec2( sdEllipsoid(  pos-vec3(-1.0,0.25, 0.0), vec3(0.2, 0.25, 0.05) ), 43.17 ) );
 	res = opU( res, vec2( sdRhombus(   (pos-vec3(-1.0,0.34, 1.0)).xzy, 0.15, 0.25, 0.04, 0.08 ),17.0 ) );
     }
-/*
+
     {
     res = opU( res, vec2( sdBoundingBox( pos-vec3( 0.0,0.25, 0.0), vec3(0.3,0.25,0.2), 0.025 ), 16.9 ) );
 	res = opU( res, vec2( sdTorus(      (pos-vec3( 0.0,0.30, 1.0)).xzy, vec2(0.25,0.05) ), 25.0 ) );
@@ -155,7 +156,7 @@ vec2 map( in vec3 pos ) {
     res = opU( res, vec2( sdRoundCone(   pos-vec3( 2.0,0.20, 1.0), 0.2, 0.1, 0.3 ), 37.0 ) );
     }
 */
-    res = opU(res, vec2(bodydistance(pos+vec3(0.0, 1.0, 0.0)), 10.0));
+    res = opU(res, vec2(bodydistance(pos-bodyroot), 10.0));
     
     return res;
 }
@@ -165,29 +166,18 @@ vec2 raycast( in vec3 ro, in vec3 rd ) {
     float tmin = 1.0;
     float tmax = 20.0;
 
-    // raytrace floor plane
-    float planeY = -3.0;
-    float tp1 = (planeY-ro.y)/rd.y;
+    //floor
+    float tp1 = (0.0-ro.y)/rd.y;
     if( tp1>0.0 ) {
-        tmax = min( tmax, tp1 );
+        tmax = min(tmax, tp1);
         res = vec2( tp1, 1.0 );
     }
     
     // raymarch primitives
-    vec2 tb = iBox(ro-bodyroot, rd, vec3(3.0, 3.0, 3.0) );
-    float start = iSphere(ro, rd, bodyroot, 3.0); //bounding sphere dist
-    
-    vec3 pos;
-    if( tb.x<tb.y && tb.y>planeY && tb.x<tmax) {
-        tmin = max(tb.x,tmin);
-        tmax = min(tb.y,tmax);
-        float t = tmin;
+    float t = iSphere(ro, rd, bodyroot, 4.0);
+    if(t>0.0) {
         for( int i=0; i<70 && t<tmax; i++ ) {
-            pos = ro + rd*t;
-            vec2 h = map(pos);
-            if (length(pos-bodyroot)>4.0) {
-                return res;
-            }
+            vec2 h = map(ro + rd*t);
             if(abs(h.x)<(0.0001*t)) {
                 res = vec2(t,h.y); 
                 break;
@@ -312,8 +302,8 @@ void main(void) {
     uv /= iResolution.y;
 
     vec3 lookAt = vec3(0.0);
-    //vec3 ro = vec3(3.0*cos(0.1*iTime), 1.0, 3.0*sin(0.1*iTime));
-    vec3 ro = vec3(8.0, 2.0, 0.0);
+    vec3 ro = vec3(6.0*cos(0.1*iTime), 2.0, 6.0*sin(0.1*iTime));
+    //vec3 ro = vec3(6.0, 2.0, 0.0);
     vec3 rd = raydir(uv, ro, lookAt);
 
     vec3 tot = vec3(0.0);

@@ -107,10 +107,10 @@ float sphIntersect(vec3 ro, vec3 rd, vec4 sph) {
 
 float iSphere(vec3 ro, vec3 rd, vec3 pos, float r) {
     vec3 oc = ro - pos;
-    float b = dot( oc, rd );
-    float c = dot( oc, oc ) - r*r;
+    float b = dot(oc, rd);
+    float c = dot(oc, oc) - r*r;
     float h = b*b - c;
-    if( h<0.0 ) return -1.0;
+    if(h<0.0) return -1.0;
     h = sqrt( h );
     return -b - h;
 }
