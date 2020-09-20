@@ -81,15 +81,18 @@ function main(glsl) {
   let lowerbody = new Float32Array(uniforms.skel.buffer, 1 * L, 3);
   let righthip = new Float32Array(uniforms.skel.buffer, 10 * L, 3);
   let leftknee = new Float32Array(uniforms.skel.buffer, 14 * L, 3);
+  let leftfoot = new Float32Array(uniforms.skel.buffer, 15 * L, 3);
 
   let animstart = performance.now();
   let animframe = requestAnimationFrame(animate);
   function animate(timestamp) {
     uniforms.iTime = (timestamp - animstart) / 1000;
     let t = 0.5 * uniforms.iTime;
+    //Ranges of motions
     lowerbody[0] = 0.7853981633974483 * sin(t);
     righthip[0] = 0.4363323129985824 + 0.9599310885968813 * sin(t);
     leftknee[0] = -1.0908307824964558 + 1.2653637076958888 * sin(t);
+    leftfoot[0] = -0.2617993877991494 + 0.6108652381980153 * sin(t);
     draw(gl, basicshader, uniforms);
     animframe = requestAnimationFrame(animate);
   }
