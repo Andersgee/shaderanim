@@ -76,9 +76,11 @@ function main(glsl) {
   bindtextures(gl, texturefilenames);
   bindclipspacequad(gl, basicshader);
 
-  let upperbody = new Float32Array(uniforms.skel.buffer, 0 * 12, 3);
-  let lowerbody = new Float32Array(uniforms.skel.buffer, 1 * 12, 3);
-  let righthip = new Float32Array(uniforms.skel.buffer, 10 * 12, 3);
+  let L = 12;
+  let upperbody = new Float32Array(uniforms.skel.buffer, 0 * L, 3);
+  let lowerbody = new Float32Array(uniforms.skel.buffer, 1 * L, 3);
+  let righthip = new Float32Array(uniforms.skel.buffer, 10 * L, 3);
+  let leftknee = new Float32Array(uniforms.skel.buffer, 14 * L, 3);
 
   let animstart = performance.now();
   let animframe = requestAnimationFrame(animate);
@@ -87,7 +89,7 @@ function main(glsl) {
     let t = 0.5 * uniforms.iTime;
     lowerbody[0] = 0.7853981633974483 * sin(t);
     righthip[0] = 0.4363323129985824 + 0.9599310885968813 * sin(t);
-
+    leftknee[0] = -1.0908307824964558 + 1.2653637076958888 * sin(t);
     draw(gl, basicshader, uniforms);
     animframe = requestAnimationFrame(animate);
   }
