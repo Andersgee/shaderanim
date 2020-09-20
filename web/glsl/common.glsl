@@ -105,6 +105,16 @@ float sphIntersect(vec3 ro, vec3 rd, vec4 sph) {
     return -b - h;
 }
 
+float iSphere(vec3 ro, vec3 rd, vec3 pos, float r) {
+    vec3 oc = ro - pos;
+    float b = dot( oc, rd );
+    float c = dot( oc, oc ) - r*r;
+    float h = b*b - c;
+    if( h<0.0 ) return -1.0;
+    h = sqrt( h );
+    return -b - h;
+}
+
 vec3 sphNormal(vec3 p, vec4 sph) {
   return normalize(p - sph.xyz);
 }
@@ -498,3 +508,4 @@ float getPelvis(vec3 p) {
 float getNeck(vec3 p) {
     return sdCapsule(p, vec3(0.0), vec3(0, 0.24, 0.07), 0.15);
 }
+

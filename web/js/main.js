@@ -28,6 +28,7 @@ function shaderlayout(canvas) {
     earthwater: "uniform1i",
     earthbump: "uniform1i",
     skel: "uniform3fv",
+    bodyroot: "uniform3fv",
   };
 
   let uniforms = {
@@ -39,7 +40,8 @@ function shaderlayout(canvas) {
     earthcloudtrans: 3,
     earthwater: 4,
     earthbump: 5,
-    skel: new Array(16 * 3).fill(0.0),
+    skel: new Float32Array(16 * 3).fill(0.0),
+    bodyroot: [0, 0, 0],
   };
   /*
   uniforms.skel[0 * 3 + 0] = 0.25;
@@ -59,6 +61,10 @@ function shaderlayout(canvas) {
   return [layout, uniforms, texturefilenames];
 }
 
+function sin(x) {
+  return Math.sin(x);
+}
+
 function main(glsl) {
   let canvas = document.getElementById("canvas");
   canvas.width = 720;
@@ -70,10 +76,18 @@ function main(glsl) {
   bindtextures(gl, texturefilenames);
   bindclipspacequad(gl, basicshader);
 
+  let upperbody = new Float32Array(uniforms.skel.buffer, 0 * 12, 3);
+  let lowerbody = new Float32Array(uniforms.skel.buffer, 1 * 12, 3);
+  let righthip = new Float32Array(uniforms.skel.buffer, 10 * 12, 3);
+
   let animstart = performance.now();
   let animframe = requestAnimationFrame(animate);
   function animate(timestamp) {
     uniforms.iTime = (timestamp - animstart) / 1000;
+    let t = 0.5 * uniforms.iTime;
+    lowerbody[0] = 0.7853981633974483 * sin(t);
+    righthip[0] = 0.4363323129985824 + 0.9599310885968813 * sin(t);
+
     draw(gl, basicshader, uniforms);
     animframe = requestAnimationFrame(animate);
   }

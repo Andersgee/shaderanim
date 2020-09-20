@@ -19,6 +19,7 @@ in vec2 ssc;
 uniform float iTime;
 uniform vec2 iResolution;
 uniform vec3 skel[16];
+uniform vec3 bodyroot;
 out vec4 fragColor;
 
 
@@ -43,7 +44,8 @@ vec3 rotateLimb(vec3 p, int i) {
 // main distance function
 float bodydistance(vec3 p) {
     
-    p.y += 0.5;
+    //p.y += 0.5;
+    p -= bodyroot;
     // main pivot point is upper body
     vec3 inUpperBody = p;
     inUpperBody = rotateLimb(inUpperBody, 0);
@@ -172,13 +174,20 @@ vec2 raycast( in vec3 ro, in vec3 rd ) {
     }
     
     // raymarch primitives
-    vec2 tb = iBox( ro, rd, vec3(2.5, 4.0, 3.0) );
-    if( tb.x<tb.y && tb.y>0.0 && tb.x<tmax) {
+    vec2 tb = iBox(ro-bodyroot, rd, vec3(3.0, 3.0, 3.0) );
+    float start = iSphere(ro, rd, bodyroot, 3.0); //bounding sphere dist
+    
+    vec3 pos;
+    if( tb.x<tb.y && tb.y>planeY && tb.x<tmax) {
         tmin = max(tb.x,tmin);
         tmax = min(tb.y,tmax);
         float t = tmin;
         for( int i=0; i<70 && t<tmax; i++ ) {
-            vec2 h = map( ro+rd*t );
+            pos = ro + rd*t;
+            vec2 h = map(pos);
+            if (length(pos-bodyroot)>4.0) {
+                return res;
+            }
             if(abs(h.x)<(0.0001*t)) {
                 res = vec2(t,h.y); 
                 break;
@@ -236,7 +245,7 @@ vec3 render( in vec3 ro, in vec3 rd) {
     // raycast scene
     vec2 res = raycast(ro,rd);
     float t = res.x;
-	float m = res.y; //model
+	float m = res.y; //model number
     if( m>-0.5 ) {
         vec3 pos = ro + t*rd;
         vec3 nor = (m<1.5) ? vec3(0.0,1.0,0.0) : calcNormal( pos );
@@ -303,7 +312,8 @@ void main(void) {
     uv /= iResolution.y;
 
     vec3 lookAt = vec3(0.0);
-    vec3 ro = vec3(3.0*cos(0.1*iTime), 1.0, 3.0*sin(0.1*iTime));
+    //vec3 ro = vec3(3.0*cos(0.1*iTime), 1.0, 3.0*sin(0.1*iTime));
+    vec3 ro = vec3(8.0, 2.0, 0.0);
     vec3 rd = raydir(uv, ro, lookAt);
 
     vec3 tot = vec3(0.0);
