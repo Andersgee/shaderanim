@@ -172,19 +172,19 @@ vec2 raycast( in vec3 ro, in vec3 rd ) {
         res = vec2( tp1, 1.0 );
     }
     
-    vec2 sph = iSphere(ro, rd, bodyroot, 3.5); //only raymarch within this sphere
-    float t = sph.x; //min
-    tmax = min(tmax,sph.y); //max
+    vec2 bound = iSphere(ro, rd, bodyroot, 3.5); //only raymarch within this sphere
+    float t = bound.x; //min
+    tmax = min(tmax, bound.y); //max
 
     if(t>0.0) {
         for( int i=0; i<80 && t<tmax; i++ ) {
             vec2 h = map(ro + rd*t);
-            h.x = min(0.2, h.x); //limit stepsize cuz overstepping.
+            h.x = min(0.15, h.x); //limit stepsize cuz overstepping.
             if(abs(h.x)<(0.0001*t)) {
                 res = vec2(t,h.y);
                 break;
             }
-            t += 0.9*h.x;
+            t += 0.99*h.x;
         }
     }
     return res;
