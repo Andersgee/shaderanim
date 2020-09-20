@@ -99,11 +99,11 @@ function main(glsl) {
     uniforms.iTime = (timestamp - animstart) / 1000;
     let t = 0.5 * uniforms.iTime;
     //Ranges of motions
-    //neck[0] = neck0[0] + neck0[1] * sin(t);
+    neck[0] = neck0[0] + neck0[1] * sin(t);
     neck[1] = neck1[0] + neck1[1] * sin(t);
 
-    //head[0] = head0[0] + head0[1] * sin(t);
-    //head[2] = head2[0] + head2[1] * sin(t);
+    head[0] = head0[0] + head0[1] * sin(t);
+    head[2] = head2[0] + head2[1] * sin(t);
 
     lowerbody[0] = body[0] + body[1] * sin(t);
     lefthip[0] = hip[0] + hip[1] * sin(t);
@@ -127,7 +127,7 @@ function main(glsl) {
 //Ranges of motion: [center, rad]
 //PITCH
 const head0 = [0.0, 0.5];
-const neck0 = [0.0, 0.75];
+const neck0 = [0.0, 0.5];
 const body = [0.0, 0.7853981633974483];
 const hip = [0.4363323129985824, 0.9599310885968813];
 const knee = [-1.0908307824964558, 1.2653637076958888];
