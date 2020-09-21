@@ -97,9 +97,9 @@ function main(glsl) {
   let animframe = requestAnimationFrame(animate);
   function animate(timestamp) {
     uniforms.iTime = (timestamp - animstart) / 1000;
-    let t = 0.5 * uniforms.iTime;
+    let t = 1.0 * uniforms.iTime;
     //let flex = sin(t)
-    let flex = sin(t);
+    let flex = 0; //sin(t);
     let bend = sin(t);
     let rot = sin(t);
 
