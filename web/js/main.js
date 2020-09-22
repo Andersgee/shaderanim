@@ -1,3 +1,30 @@
+//Ranges of motion: [center, rad]
+//PITCH
+//aka FLEX/EXTEND direction
+const lowerbody0 = [0.0, 0.7853981633974483];
+const head0 = [0.0, 0.5];
+const neck0 = [0.0, 0.5];
+const hip = [0.4363323129985824, 0.9599310885968813];
+const knee = [-1.0908307824964558, -1.2653637076958888];
+const foot = [-0.2617993877991494, 0.6108652381980153];
+const shoulder = [0.0, -1.5];
+const elbow = [-1.2217304763960306, -1.3962634015954636];
+const hand = [0.08726646259971647, -0.4363323129985824];
+
+//YAW
+//aka lateral bend direction
+const neck1 = [0.0, -0.5];
+const shoulder1 = [-0.6981317007977318, -1.0];
+const hand1 = [0.08726646259971647, -1.3089969389957472];
+const hip1 = [-0.6108652381980153, -0.7853981633974483];
+
+//ROLL
+//aka rotate direction
+const head2 = [0.0, -1.0471975511965976];
+const shoulder2 = [0.0, 1.3962634015954636];
+const elbow2 = [0.0, 1.3962634015954636];
+const lowerbody2 = [0.0, -0.7853981633974483];
+
 async function fetchglsl() {
   return await Promise.all([
     fetch("../glsl/common.glsl").then((res) => res.text()),
@@ -106,22 +133,76 @@ function main(glsl) {
   linkslider("neck2", neck, 2);
 
   let head = new Float32Array(uniforms.skel.buffer, 3 * L, 3);
+  linkslider("head0", head, 0);
+  linkslider("head1", head, 1);
+  linkslider("head2", head, 2);
+
   let rightshoulder = new Float32Array(uniforms.skel.buffer, 4 * L, 3);
+  linkslider("rightshoulder0", rightshoulder, 0);
+  linkslider("rightshoulder1", rightshoulder, 1);
+  linkslider("rightshoulder2", rightshoulder, 2);
+
   let rightelbow = new Float32Array(uniforms.skel.buffer, 5 * L, 3);
+  linkslider("rightelbow0", rightelbow, 0);
+  linkslider("rightelbow1", rightelbow, 1);
+  linkslider("rightelbow2", rightelbow, 2);
+
   let righthand = new Float32Array(uniforms.skel.buffer, 6 * L, 3);
+  linkslider("righthand0", righthand, 0);
+  linkslider("righthand1", righthand, 1);
+  linkslider("righthand2", righthand, 2);
+
   let leftshoulder = new Float32Array(uniforms.skel.buffer, 7 * L, 3);
+  linkslider("leftshoulder0", leftshoulder, 0);
+  linkslider("leftshoulder1", leftshoulder, 1);
+  linkslider("leftshoulder2", leftshoulder, 2);
+
   let leftelbow = new Float32Array(uniforms.skel.buffer, 8 * L, 3);
+  linkslider("leftelbow0", leftelbow, 0);
+  linkslider("leftelbow1", leftelbow, 1);
+  linkslider("leftelbow2", leftelbow, 2);
+
   let lefthand = new Float32Array(uniforms.skel.buffer, 9 * L, 3);
+  linkslider("lefthand0", lefthand, 0);
+  linkslider("lefthand1", lefthand, 1);
+  linkslider("lefthand2", lefthand, 2);
 
   let righthip = new Float32Array(uniforms.skel.buffer, 10 * L, 3);
+  linkslider("righthip0", righthip, 0);
+  linkslider("righthip1", righthip, 1);
+  linkslider("righthip2", righthip, 2);
+
+  let rightknee = new Float32Array(uniforms.skel.buffer, 11 * L, 3);
+  linkslider("rightknee0", rightknee, 0);
+  linkslider("rightknee1", rightknee, 1);
+  linkslider("rightknee2", rightknee, 2);
+
+  let rightfoot = new Float32Array(uniforms.skel.buffer, 12 * L, 3);
+  linkslider("rightfoot0", rightfoot, 0);
+  linkslider("rightfoot1", rightfoot, 1);
+  linkslider("rightfoot2", rightfoot, 2);
+
   let lefthip = new Float32Array(uniforms.skel.buffer, 13 * L, 3);
+  linkslider("lefthip0", lefthip, 0);
+  linkslider("lefthip1", lefthip, 1);
+  linkslider("lefthip2", lefthip, 2);
+
   let leftknee = new Float32Array(uniforms.skel.buffer, 14 * L, 3);
+  linkslider("leftknee0", leftknee, 0);
+  linkslider("leftknee1", leftknee, 1);
+  linkslider("leftknee2", leftknee, 2);
+
   let leftfoot = new Float32Array(uniforms.skel.buffer, 15 * L, 3);
+  linkslider("leftfoot0", leftfoot, 0);
+  linkslider("leftfoot1", leftfoot, 1);
+  linkslider("leftfoot2", leftfoot, 2);
 
   let animstart = performance.now();
 
   function animate(timestamp) {
     uniforms.iTime = (timestamp - animstart) / 1000;
+    /*
+    
     let t = 1.0 * uniforms.iTime;
     //let flex = sin(t)
     let flex = 0; //sin(t);
@@ -139,8 +220,8 @@ function main(glsl) {
     //neck[0] = neck0[0] + neck0[1] * flex;
     //neck[1] = neck1[0] + neck1[1] * bend;
 
-    head[0] = head0[0] + head0[1] * flex;
-    head[2] = head2[0] + head2[1] * rot;
+    //head[0] = head0[0] + head0[1] * flex;
+    //head[2] = head2[0] + head2[1] * rot;
 
     //lowerbody[0] = lowerbody0[0] + lowerbody0[1] * flex;
     //lowerbody[2] = lowerbody2[0] + lowerbody2[1] * rot;
@@ -159,39 +240,12 @@ function main(glsl) {
     rightshoulder[2] = shoulder2[0] + shoulder2[1] * rot;
 
     rightelbow[2] = elbow2[0] + elbow2[1] * rot;
-
+*/
     draw(gl, basicshader, uniforms);
     animframe = requestAnimationFrame(animate);
   }
 
   let animframe = requestAnimationFrame(animate);
 }
-
-//Ranges of motion: [center, rad]
-//PITCH
-//aka FLEX/EXTEND direction
-const lowerbody0 = [0.0, 0.7853981633974483];
-const head0 = [0.0, -0.5];
-const neck0 = [0.0, -0.5];
-const hip = [0.4363323129985824, 0.9599310885968813];
-const knee = [-1.0908307824964558, -1.2653637076958888];
-const foot = [-0.2617993877991494, 0.6108652381980153];
-const shoulder = [0.0, -1.5];
-const elbow = [-1.2217304763960306, -1.3962634015954636];
-const hand = [0.08726646259971647, -0.4363323129985824];
-
-//YAW
-//aka lateral bend direction
-const neck1 = [0.0, -0.5];
-const shoulder1 = [-0.6981317007977318, -1.0];
-const hand1 = [0.08726646259971647, -1.3089969389957472];
-const hip1 = [-0.6108652381980153, -0.7853981633974483];
-
-//ROLL
-//aka rotate direction
-const head2 = [0.0, -1.0471975511965976];
-const shoulder2 = [0.0, 1.3962634015954636];
-const elbow2 = [0.0, 1.3962634015954636];
-const lowerbody2 = [0.0, -0.7853981633974483];
 
 window.onload = setup();
