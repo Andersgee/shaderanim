@@ -201,9 +201,9 @@ vec2 raycast( in vec3 ro, in vec3 rd ) {
     tmax = min(tmax, bound.y); //max
 
     if(t>0.0) {
-        for( int i=0; i<80 && t<tmax; i++ ) {
+        for( int i=0; i<50 && t<tmax; i++ ) {
             vec2 h = map(ro + rd*t);
-            h.x = min(0.1, h.x); //limit stepsize cuz overstepping.
+            //h.x = min(0.1, h.x); //limit stepsize cuz overstepping.
             if(abs(h.x)<(0.001*t)) {
                 res = vec2(t,h.y);
                 break;

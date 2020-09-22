@@ -65,6 +65,13 @@ function sin(x) {
   return Math.sin(x);
 }
 
+function linkslider(name, v, i) {
+  let slider = document.getElementById(name);
+  slider.oninput = () => {
+    v[i] = slider.value;
+  };
+}
+
 function main(glsl) {
   let canvas = document.getElementById("canvas");
   canvas.width = 720;
@@ -77,9 +84,22 @@ function main(glsl) {
   bindclipspacequad(gl, basicshader);
 
   let L = 12;
+
   let upperbody = new Float32Array(uniforms.skel.buffer, 0 * L, 3);
+  linkslider("upperbody0", upperbody, 0);
+  linkslider("upperbody1", upperbody, 1);
+  linkslider("upperbody2", upperbody, 2);
+
   let lowerbody = new Float32Array(uniforms.skel.buffer, 1 * L, 3);
+  linkslider("lowerbody0", lowerbody, 0);
+  linkslider("lowerbody1", lowerbody, 1);
+  linkslider("lowerbody2", lowerbody, 2);
+
   let neck = new Float32Array(uniforms.skel.buffer, 2 * L, 3);
+  linkslider("neck0", neck, 0);
+  linkslider("neck1", neck, 1);
+  linkslider("neck2", neck, 2);
+
   let head = new Float32Array(uniforms.skel.buffer, 3 * L, 3);
   let rightshoulder = new Float32Array(uniforms.skel.buffer, 4 * L, 3);
   let rightelbow = new Float32Array(uniforms.skel.buffer, 5 * L, 3);
@@ -103,18 +123,22 @@ function main(glsl) {
     let bend = sin(t);
     let rot = sin(t);
 
+    //upperbody[0] = orientation[0];
+    //upperbody[1] = orientation[1];
+    //upperbody[2] = orientation[2];
+
     lefthip[0] = hip[0] + hip[1] * flex;
     lefthip[1] = hip1[0] + hip1[1] * bend;
 
     //Ranges of motions
-    neck[0] = neck0[0] + neck0[1] * flex;
-    neck[1] = neck1[0] + neck1[1] * bend;
+    //neck[0] = neck0[0] + neck0[1] * flex;
+    //neck[1] = neck1[0] + neck1[1] * bend;
 
     head[0] = head0[0] + head0[1] * flex;
     head[2] = head2[0] + head2[1] * rot;
 
-    lowerbody[0] = lowerbody0[0] + lowerbody0[1] * flex;
-    lowerbody[2] = lowerbody2[0] + lowerbody2[1] * rot;
+    //lowerbody[0] = lowerbody0[0] + lowerbody0[1] * flex;
+    //lowerbody[2] = lowerbody2[0] + lowerbody2[1] * rot;
 
     leftknee[0] = knee[0] + knee[1] * flex;
     leftfoot[0] = foot[0] + foot[1] * flex;
