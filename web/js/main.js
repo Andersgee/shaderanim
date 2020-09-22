@@ -1,29 +1,29 @@
 //Ranges of motion: [center, rad]
 //PITCH
 //aka FLEX/EXTEND direction
-const lowerbody0 = [0.0, 0.7853981633974483];
-const head0 = [0.0, 0.5];
-const neck0 = [0.0, 0.5];
-const hip = [0.4363323129985824, 0.9599310885968813];
-const knee = [-1.0908307824964558, -1.2653637076958888];
-const foot = [-0.2617993877991494, 0.6108652381980153];
-const shoulder = [0.0, -1.5];
-const elbow = [-1.2217304763960306, -1.3962634015954636];
-const hand = [0.08726646259971647, -0.4363323129985824];
-
+const rom_lowerbody0 = [0.0, 0.7853981633974483];
+const rom_head0 = [0.0, 0.5];
+const rom_neck0 = [0.0, 0.5];
+const rom_hip0 = [0.4363323129985824, 0.9599310885968813];
+const rom_knee0 = [-1.0908307824964558, -1.2653637076958888];
+const rom_foot0 = [-0.2617993877991494, 0.6108652381980153];
+const rom_shoulder0 = [0.0, -1.5];
+const rom_elbow0 = [-1.2217304763960306, -1.3962634015954636];
+const rom_hand0 = [0.08726646259971647, -1.3089969389957472];
 //YAW
+
 //aka lateral bend direction
-const neck1 = [0.0, -0.5];
-const shoulder1 = [-0.6981317007977318, -1.0];
-const hand1 = [0.08726646259971647, -1.3089969389957472];
-const hip1 = [-0.6108652381980153, -0.7853981633974483];
+const rom_neck1 = [0.0, -0.5];
+const rom_shoulder1 = [-0.6981317007977318, -1.0];
+const rom_hand1 = [0.08726646259971647, -0.4363323129985824];
+const rom_hip1 = [-0.6108652381980153, -0.7853981633974483];
 
 //ROLL
 //aka rotate direction
-const head2 = [0.0, -1.0471975511965976];
-const shoulder2 = [0.0, 1.3962634015954636];
-const elbow2 = [0.0, 1.3962634015954636];
-const lowerbody2 = [0.0, -0.7853981633974483];
+const rom_head2 = [0.0, -1.0471975511965976];
+const rom_shoulder2 = [0.0, 1.3962634015954636];
+const rom_hand2 = [0.0, 1.3962634015954636];
+const rom_lowerbody2 = [0.0, -0.7853981633974483];
 
 async function fetchglsl() {
   return await Promise.all([
@@ -48,42 +48,22 @@ function shaderlayout(canvas) {
   layout.uniforms = {
     iTime: "uniform1f",
     iResolution: "uniform2fv",
-    earthday: "uniform1i",
-    earthnight: "uniform1i",
-    earthclouds: "uniform1i",
-    earthcloudtrans: "uniform1i",
-    earthwater: "uniform1i",
-    earthbump: "uniform1i",
     skel: "uniform3fv",
     bodyroot: "uniform3fv",
+    earthday: "uniform1i",
+    earthnight: "uniform1i",
   };
 
   let uniforms = {
     iTime: 0.0,
     iResolution: [canvas.width, canvas.height],
-    earthday: 0,
-    earthnight: 1,
-    earthclouds: 2,
-    earthcloudtrans: 3,
-    earthwater: 4,
-    earthbump: 5,
     skel: new Float32Array(16 * 3).fill(0.0),
     bodyroot: [0, 1.8, 0],
+    earthday: 0,
+    earthnight: 1,
   };
-  /*
-  uniforms.skel[0 * 3 + 0] = 0.25;
-  uniforms.skel[0 * 3 + 1] = 0.5;
-  uniforms.skel[0 * 3 + 2] = 0.1;
-  uniforms.skel[4 * 3 + 0] = 0.5;
-*/
-  texturefilenames = [
-    "../textures/earthday.jpg",
-    "../textures/earthnight.jpg",
-    "../textures/earthclouds.jpg",
-    "../textures/earthcloudtrans.jpg",
-    "../textures/earthwater.jpg",
-    "../textures/earthbump.jpg",
-  ];
+
+  texturefilenames = ["../textures/earthday.jpg", "../textures/earthnight.jpg"];
 
   return [layout, uniforms, texturefilenames];
 }
@@ -92,7 +72,7 @@ function sin(x) {
   return Math.sin(x);
 }
 
-function linkslider(name, v, i) {
+function linkslider(name, v, i, rom = [0, 1]) {
   let slider = document.getElementById(name);
   slider.type = "range";
   slider.min = "-1";
@@ -100,7 +80,7 @@ function linkslider(name, v, i) {
   slider.value = "0";
   slider.step = "0.01";
   slider.oninput = () => {
-    v[i] = slider.value;
+    v[i] = rom[0] + rom[1] * slider.value;
   };
 }
 
@@ -123,68 +103,68 @@ function main(glsl) {
   linkslider("upperbody2", upperbody, 2);
 
   let lowerbody = new Float32Array(uniforms.skel.buffer, 1 * L, 3);
-  linkslider("lowerbody0", lowerbody, 0);
-  linkslider("lowerbody1", lowerbody, 1);
-  linkslider("lowerbody2", lowerbody, 2);
+  linkslider("lowerbody0", lowerbody, 0, rom_lowerbody0);
+  //linkslider("lowerbody1", lowerbody, 1);
+  linkslider("lowerbody2", lowerbody, 2, rom_lowerbody2);
 
   let neck = new Float32Array(uniforms.skel.buffer, 2 * L, 3);
-  linkslider("neck0", neck, 0);
-  linkslider("neck1", neck, 1);
-  linkslider("neck2", neck, 2);
+  linkslider("neck0", neck, 0, rom_neck0);
+  linkslider("neck1", neck, 1, rom_neck1);
+  //linkslider("neck2", neck, 2);
 
   let head = new Float32Array(uniforms.skel.buffer, 3 * L, 3);
-  linkslider("head0", head, 0);
-  linkslider("head1", head, 1);
-  linkslider("head2", head, 2);
+  linkslider("head0", head, 0, rom_head0);
+  //linkslider("head1", head, 1);
+  linkslider("head2", head, 2, rom_head2);
 
   let rightshoulder = new Float32Array(uniforms.skel.buffer, 4 * L, 3);
-  linkslider("rightshoulder0", rightshoulder, 0);
-  linkslider("rightshoulder1", rightshoulder, 1);
-  linkslider("rightshoulder2", rightshoulder, 2);
+  linkslider("rightshoulder0", rightshoulder, 0, rom_shoulder0);
+  linkslider("rightshoulder1", rightshoulder, 1, rom_shoulder1);
+  linkslider("rightshoulder2", rightshoulder, 2, rom_shoulder2);
 
   let rightelbow = new Float32Array(uniforms.skel.buffer, 5 * L, 3);
-  linkslider("rightelbow0", rightelbow, 0);
-  linkslider("rightelbow1", rightelbow, 1);
-  linkslider("rightelbow2", rightelbow, 2);
+  linkslider("rightelbow0", rightelbow, 0, rom_elbow0);
+  //linkslider("rightelbow1", rightelbow, 1);
+  //linkslider("rightelbow2", rightelbow, 2, rom_elbow2);
 
   let righthand = new Float32Array(uniforms.skel.buffer, 6 * L, 3);
-  linkslider("righthand0", righthand, 0);
-  linkslider("righthand1", righthand, 1);
-  linkslider("righthand2", righthand, 2);
+  linkslider("righthand0", righthand, 0, rom_hand0);
+  linkslider("righthand1", righthand, 1, rom_hand1);
+  linkslider("righthand2", righthand, 2, rom_hand2);
 
   let leftshoulder = new Float32Array(uniforms.skel.buffer, 7 * L, 3);
-  linkslider("leftshoulder0", leftshoulder, 0);
-  linkslider("leftshoulder1", leftshoulder, 1);
-  linkslider("leftshoulder2", leftshoulder, 2);
+  linkslider("leftshoulder0", leftshoulder, 0, rom_shoulder0);
+  linkslider("leftshoulder1", leftshoulder, 1, rom_shoulder1);
+  linkslider("leftshoulder2", leftshoulder, 2, rom_shoulder2);
 
   let leftelbow = new Float32Array(uniforms.skel.buffer, 8 * L, 3);
-  linkslider("leftelbow0", leftelbow, 0);
-  linkslider("leftelbow1", leftelbow, 1);
-  linkslider("leftelbow2", leftelbow, 2);
+  linkslider("leftelbow0", leftelbow, 0, rom_elbow0);
+  //linkslider("leftelbow1", leftelbow, 1);
+  //linkslider("leftelbow2", leftelbow, 2, rom_elbow2);
 
   let lefthand = new Float32Array(uniforms.skel.buffer, 9 * L, 3);
-  linkslider("lefthand0", lefthand, 0);
-  linkslider("lefthand1", lefthand, 1);
-  linkslider("lefthand2", lefthand, 2);
+  linkslider("lefthand0", lefthand, 0, rom_hand0);
+  linkslider("lefthand1", lefthand, 1, rom_hand1);
+  linkslider("lefthand2", lefthand, 2, rom_hand2);
 
   let righthip = new Float32Array(uniforms.skel.buffer, 10 * L, 3);
-  linkslider("righthip0", righthip, 0);
-  linkslider("righthip1", righthip, 1);
+  linkslider("righthip0", righthip, 0, rom_hip0);
+  linkslider("righthip1", righthip, 1, rom_hip1);
   linkslider("righthip2", righthip, 2);
 
   let rightknee = new Float32Array(uniforms.skel.buffer, 11 * L, 3);
-  linkslider("rightknee0", rightknee, 0);
+  linkslider("rightknee0", rightknee, 0, rom_knee0);
   linkslider("rightknee1", rightknee, 1);
   linkslider("rightknee2", rightknee, 2);
 
   let rightfoot = new Float32Array(uniforms.skel.buffer, 12 * L, 3);
-  linkslider("rightfoot0", rightfoot, 0);
+  linkslider("rightfoot0", rightfoot, 0, rom_foot0);
   linkslider("rightfoot1", rightfoot, 1);
   linkslider("rightfoot2", rightfoot, 2);
 
   let lefthip = new Float32Array(uniforms.skel.buffer, 13 * L, 3);
-  linkslider("lefthip0", lefthip, 0);
-  linkslider("lefthip1", lefthip, 1);
+  linkslider("lefthip0", lefthip, 0, rom_hip0);
+  linkslider("lefthip1", lefthip, 1, rom_hip1);
   linkslider("lefthip2", lefthip, 2);
 
   let leftknee = new Float32Array(uniforms.skel.buffer, 14 * L, 3);
@@ -193,7 +173,7 @@ function main(glsl) {
   linkslider("leftknee2", leftknee, 2);
 
   let leftfoot = new Float32Array(uniforms.skel.buffer, 15 * L, 3);
-  linkslider("leftfoot0", leftfoot, 0);
+  linkslider("leftfoot0", leftfoot, 0, rom_knee0);
   linkslider("leftfoot1", leftfoot, 1);
   linkslider("leftfoot2", leftfoot, 2);
 
