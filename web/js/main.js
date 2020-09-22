@@ -16,6 +16,7 @@ const rom_hand0 = [0.08726646259971647, -1.3089969389957472];
 const rom_neck1 = [0.0, -0.5];
 const rom_shoulder1 = [-0.6981317007977318, -1.0];
 const rom_hand1 = [0.08726646259971647, -0.4363323129985824];
+const rom_foot1 = [0.0, -0.4363323129985824];
 const rom_hip1 = [-0.6108652381980153, -0.7853981633974483];
 
 //ROLL
@@ -150,32 +151,32 @@ function main(glsl) {
   let righthip = new Float32Array(uniforms.skel.buffer, 10 * L, 3);
   linkslider("righthip0", righthip, 0, rom_hip0);
   linkslider("righthip1", righthip, 1, rom_hip1);
-  linkslider("righthip2", righthip, 2);
+  //linkslider("righthip2", righthip, 2);
 
   let rightknee = new Float32Array(uniforms.skel.buffer, 11 * L, 3);
   linkslider("rightknee0", rightknee, 0, rom_knee0);
-  linkslider("rightknee1", rightknee, 1);
-  linkslider("rightknee2", rightknee, 2);
+  //linkslider("rightknee1", rightknee, 1);
+  //linkslider("rightknee2", rightknee, 2);
 
   let rightfoot = new Float32Array(uniforms.skel.buffer, 12 * L, 3);
   linkslider("rightfoot0", rightfoot, 0, rom_foot0);
-  linkslider("rightfoot1", rightfoot, 1);
-  linkslider("rightfoot2", rightfoot, 2);
+  linkslider("rightfoot1", rightfoot, 1, rom_foot1);
+  //linkslider("rightfoot2", rightfoot, 2);
 
   let lefthip = new Float32Array(uniforms.skel.buffer, 13 * L, 3);
   linkslider("lefthip0", lefthip, 0, rom_hip0);
   linkslider("lefthip1", lefthip, 1, rom_hip1);
-  linkslider("lefthip2", lefthip, 2);
+  //linkslider("lefthip2", lefthip, 2);
 
   let leftknee = new Float32Array(uniforms.skel.buffer, 14 * L, 3);
-  linkslider("leftknee0", leftknee, 0);
-  linkslider("leftknee1", leftknee, 1);
-  linkslider("leftknee2", leftknee, 2);
+  linkslider("leftknee0", leftknee, 0, rom_knee0);
+  //linkslider("leftknee1", leftknee, 1);
+  //linkslider("leftknee2", leftknee, 2);
 
   let leftfoot = new Float32Array(uniforms.skel.buffer, 15 * L, 3);
-  linkslider("leftfoot0", leftfoot, 0, rom_knee0);
-  linkslider("leftfoot1", leftfoot, 1);
-  linkslider("leftfoot2", leftfoot, 2);
+  linkslider("leftfoot0", leftfoot, 0, rom_foot0);
+  linkslider("leftfoot1", leftfoot, 1, rom_foot1);
+  //linkslider("leftfoot2", leftfoot, 2);
 
   let animstart = performance.now();
 
