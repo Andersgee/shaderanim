@@ -67,6 +67,11 @@ function sin(x) {
 
 function linkslider(name, v, i) {
   let slider = document.getElementById(name);
+  slider.type = "range";
+  slider.min = "-1";
+  slider.max = "1";
+  slider.value = "0";
+  slider.step = "0.01";
   slider.oninput = () => {
     v[i] = slider.value;
   };
@@ -114,7 +119,7 @@ function main(glsl) {
   let leftfoot = new Float32Array(uniforms.skel.buffer, 15 * L, 3);
 
   let animstart = performance.now();
-  let animframe = requestAnimationFrame(animate);
+
   function animate(timestamp) {
     uniforms.iTime = (timestamp - animstart) / 1000;
     let t = 1.0 * uniforms.iTime;
@@ -158,6 +163,8 @@ function main(glsl) {
     draw(gl, basicshader, uniforms);
     animframe = requestAnimationFrame(animate);
   }
+
+  let animframe = requestAnimationFrame(animate);
 }
 
 //Ranges of motion: [center, rad]
