@@ -13,6 +13,7 @@ const rom_hand0 = [0.08726646259971647, -1.3089969389957472];
 //YAW
 
 //aka lateral bend direction
+const rom_lowerbody1 = [0.0, 0.6108652381980153];
 const rom_neck1 = [0.0, -0.5];
 const rom_shoulder1 = [-0.6981317007977318, -1.0];
 const rom_hand1 = [0.08726646259971647, -0.4363323129985824];
@@ -21,10 +22,10 @@ const rom_hip1 = [-0.6108652381980153, -0.7853981633974483];
 
 //ROLL
 //aka rotate direction
+const rom_lowerbody2 = [0.0, -0.7853981633974483];
 const rom_head2 = [0.0, -1.0471975511965976];
 const rom_shoulder2 = [0.0, 1.3962634015954636];
 const rom_hand2 = [0.0, 1.3962634015954636];
-const rom_lowerbody2 = [0.0, -0.7853981633974483];
 
 async function fetchglsl() {
   return await Promise.all([
@@ -105,7 +106,7 @@ function main(glsl) {
 
   let lowerbody = new Float32Array(uniforms.skel.buffer, 1 * L, 3);
   linkslider("lowerbody0", lowerbody, 0, rom_lowerbody0);
-  //linkslider("lowerbody1", lowerbody, 1);
+  linkslider("lowerbody1", lowerbody, 1);
   linkslider("lowerbody2", lowerbody, 2, rom_lowerbody2);
 
   let neck = new Float32Array(uniforms.skel.buffer, 2 * L, 3);

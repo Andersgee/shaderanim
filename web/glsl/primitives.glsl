@@ -65,6 +65,14 @@ vec3 rotateLimb(vec3 p, int i) {
     return p;
 }
 
+vec3 rotateLowerbody(vec3 p, int i) {
+    vec3 pitchYawRoll = skel[i];
+    p.yz *= rot(pitchYawRoll.x);
+    p.xy *= rot(pitchYawRoll.y);
+    p.xz *= rot(pitchYawRoll.z);
+    return p;
+}
+
 // main distance function
 float bodydistance(vec3 p) {
     //p.y += 0.5;
@@ -72,10 +80,10 @@ float bodydistance(vec3 p) {
 
     // main pivot point is upper body
     vec3 inUpperBody = p;
-    inUpperBody = rotateLimb(inUpperBody, 0);
+    inUpperBody = rotateHip(inUpperBody, 0);
     inUpperBody -= vec3(0, 1.3, 0);
     vec3 inLowerBody = inUpperBody;
-    inLowerBody = rotateLimb(inLowerBody, 1);
+    inLowerBody = rotateLowerbody(inLowerBody, 1);
     
     // keep upper body unflipped for the head
     vec3 inUpperBodyNoFlip = inUpperBody;
