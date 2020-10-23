@@ -81,6 +81,7 @@ function linkslider(name, v, i, rom = [0, 1]) {
   slider.max = "1";
   slider.value = "0";
   slider.step = "0.01";
+  v[i] = rom[0];
   slider.oninput = () => {
     v[i] = rom[0] + rom[1] * slider.value;
   };
