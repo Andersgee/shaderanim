@@ -17,6 +17,7 @@ void main() {
 
 in vec2 ssc;
 uniform float iTime;
+uniform vec3 camrot;
 uniform vec2 iResolution;
 uniform vec3 skel[16];
 uniform vec3 bodyroot;
@@ -336,7 +337,8 @@ void main() {
     uv /= iResolution.y;
 
     vec3 lookAt = vec3(bodyroot);
-    vec3 ro = vec3(6.0*cos(0.1*iTime), 4.0, 6.0*sin(0.1*iTime));
+    //vec3 ro = vec3(6.0*cos(0.1*iTime), 4.0, 6.0*sin(0.1*iTime));
+    vec3 ro = vec3(6.0*cos(camrot.x), 4.0, 6.0*sin(camrot.x));
     //vec3 ro = vec3(6.0, 2.0, 0.0);
     vec3 rd = raydir(uv, ro, lookAt);
     vec3 col = render( ro, rd);

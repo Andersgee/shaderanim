@@ -32,7 +32,6 @@ async function fetchglsl() {
     fetch("../glsl/common.glsl").then((res) => res.text()),
     //fetch("../glsl/earth.glsl").then((res) => res.text()),
     //fetch("../glsl/hills.glsl").then((res) => res.text()),
-    //fetch("../glsl/olympian.glsl").then((res) => res.text()),
     fetch("../glsl/primitives.glsl").then((res) => res.text()),
   ]);
 }
@@ -54,6 +53,7 @@ function shaderlayout(canvas) {
     bodyroot: "uniform3fv",
     earthday: "uniform1i",
     earthnight: "uniform1i",
+    camrot: "uniform3fv",
   };
 
   let uniforms = {
@@ -63,6 +63,7 @@ function shaderlayout(canvas) {
     bodyroot: [0, 1.8, 0],
     earthday: 0,
     earthnight: 1,
+    camrot: [0, 0, 0],
   };
 
   texturefilenames = ["../textures/earthday.jpg", "../textures/earthnight.jpg"];
@@ -180,10 +181,12 @@ function main(glsl) {
   linkslider("leftfoot1", leftfoot, 1, rom_foot1);
   //linkslider("leftfoot2", leftfoot, 2);
 
+  linkslider("camrot", uniforms.camrot, 0, [0, 3]);
+
   let animstart = performance.now();
 
   function animate(timestamp) {
-    uniforms.iTime = (timestamp - animstart) / 1000;
+    //uniforms.iTime = (timestamp - animstart) / 1000;
     /*
     
     let t = 1.0 * uniforms.iTime;
